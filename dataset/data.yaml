@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['regulatory', 'stop', 'warning']
+
+roboflow:
+  workspace: tafila-technical-university-pyxx6
+  project: us-road-signs
+  version: 72
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/tafila-technical-university-pyxx6/us-road-signs/dataset/72
