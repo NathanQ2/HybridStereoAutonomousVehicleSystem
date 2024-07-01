@@ -1,0 +1,38 @@
+{
+    "camera": "HD Web Camera (05a3:9331)",
+    "platform": "Windows NT 10.0; Win64; x64",
+    "avg_reprojection_error": 1.0764646807406926,
+    "camera_matrix": [
+        [
+            1369.4881912538015,
+            0,
+            832.9337668370491
+        ],
+        [
+            0,
+            1378.0704791616597,
+            462.8089497112824
+        ],
+        [
+            0,
+            0,
+            1
+        ]
+    ],
+    "distortion_coefficients": [
+        -0.33956942504037607,
+        0.12334483908902447,
+        -0.0021704463640817846,
+        0.0007264004080491259,
+        -0.028929626021268803
+    ],
+    "distortion_model": "rectilinear",
+    "img_size": [
+        1920,
+        1080
+    ],
+    "calibration_time": "Wed, 26 Jun 2024 15:49:56 GMT",
+    "caveats": [
+        "upscaled"
+    ]
+}
