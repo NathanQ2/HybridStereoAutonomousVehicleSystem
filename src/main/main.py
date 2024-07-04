@@ -9,39 +9,20 @@ from src.main.util.Util import Util
 
 
 def main():
-    cam1 = cv.VideoCapture(0)
-    cam2 = cv.VideoCapture(1)
+    rightCam = cv.VideoCapture(1)
+    leftCam = cv.VideoCapture(0)
 
-    cam1Properties = CameraProperties(
-        "cam1",
-        1920,
-        1080,
-        90,
-        Util.inchesToMeters(4),
-        0,
-        cv.Mat(np.array([
-            [1369.4881912538015, 0, 832.9337668370491],
-            [0, 1378.0704791616597, 462.8089497112824],
-            [0, 0, 1]
-        ])),
-        cv.Mat(np.array([
-            [-0.33956942504037607],
-            [0.12334483908902447],
-            [-0.0021704463640817846],
-            [0.0007264004080491259],
-            [-0.028929626021268803]
-        ]))
-    )
-    cam2Properties = CameraProperties(
-        "cam1",
+    rightCamProps = CameraProperties(
+        "rightCam",
         1280,
         720,
         48.80887495,
-        Util.inchesToMeters(-4),
-        0,
+        0.1905 / 2,
+        Util.inchesToMeters(2.5) - Util.millimetersToMeters(15.00),
+        Util.inchesToMeters(1),
         cv.Mat(np.array([
-            [1354.2724948624088, 0, 701.0525651374418],
-            [0, 1367.9151263124934, 460.5499004758408],
+            [902.8483299082725, 0, 350.5262825687209],
+            [0, 911.9434175416623, 307.03326698389384],
             [0, 0, 1]
         ])),
         cv.Mat(np.array([
@@ -53,33 +34,57 @@ def main():
         ]))
     )
 
-    poseEstimator = PoseEstimator((cam1Properties, cam2Properties))
+    leftCamProps = CameraProperties(
+        "leftCam",
+        640,
+        480,
+        90,
+        -0.1905 / 2,
+        Util.inchesToMeters(2.5) - Util.millimetersToMeters(15.00),
+        Util.inchesToMeters(1),
+        cv.Mat(np.array([
+            [608.6614183350229, 0, 277.64458894568304],
+            [0, 612.4757685162931, 205.69286653834774],
+            [0, 0, 1]
+        ])),
+        cv.Mat(np.array([
+            [-0.33956942504037607],
+            [0.12334483908902447],
+            [-0.0021704463640817846],
+            [0.0007264004080491259],
+            [-0.028929626021268803]
+        ]))
+    )
+
+    poseEstimator = PoseEstimator(rightCamProps, leftCamProps)
 
     # Load the trained model
     model = YOLO("../../runs/detect/train/weights/best.pt")
-    # model = YOLO(r"C:\Users\natet\OneDrive\Dev\Python\GenericAutonomousVehicleSystem\runs\detect\train\weights\best_saved_model\best_float32.tflite")
     frames = 0
     startTimeSecs = time.perf_counter()
 
     while (True):
         frameStartTimeSecs = time.perf_counter()
-        ret1, frame1 = cam1.read()
-        ret2, frame2 = cam2.read()
 
-        frame1 = cv.undistort(frame1, cam1Properties.cameraMatrix, cam1Properties.distortionCoefficients)
-        frame2 = cv.undistort(frame2, cam2Properties.cameraMatrix, cam2Properties.distortionCoefficients)
+        rRet, rFrame = rightCam.read()
+        lRet, lFrame = leftCam.read()
 
-        results1 = model.predict(frame1, conf=0.70, verbose=False)
-        results2 = model.predict(frame2, conf=0.70, verbose=False)
+        rFrame = cv.undistort(rFrame, rightCamProps.calibrationMatrix, rightCamProps.distortionCoefficients)
+        lFrame = cv.undistort(lFrame, leftCamProps.calibrationMatrix, leftCamProps.distortionCoefficients)
 
-        processedFrame1 = results1[0].plot()
-        processedFrame2 = results2[0].plot()
+        rResults = model.predict(rFrame, conf=0.70, verbose=False)
+        lResults = model.predict(lFrame, conf=0.70, verbose=False)
 
-        if (len(results1[0].boxes) != 0 and len(results2[0].boxes) != 0):
-            poseEstimator.update((frame1, frame2), (results1, results2))
+        processedRFrame = rResults[0].plot()
+        processedLFrame = lResults[0].plot()
 
-        cv.imshow("Processed Frame1", processedFrame1)
-        cv.imshow("Processed Frame2", processedFrame2)
+        if (len(rResults[0].boxes) != 0 and len(lResults[0].boxes) != 0):
+            x, y, z, = poseEstimator.update(rFrame, lFrame, rResults, lResults)
+
+            print(f"POSE: ({Util.metersToInches(x)}, {Util.metersToInches(y)}, {Util.metersToInches(z)})")
+
+        cv.imshow("Processed Right Frame", processedRFrame)
+        cv.imshow("Processed Left Frame", processedLFrame)
 
         if (cv.waitKey(1) & 0xFF == ord('q')):
             break
@@ -90,8 +95,8 @@ def main():
         # print(f"Frame time: {(frameEndTimeSecs - frameStartTimeSecs) * 1000}ms")
         # print(f"FPS: {frames / (frameEndTimeSecs - startTimeSecs)}")
 
-    cam1.release()
-    cam2.release()
+    rightCam.release()
+    leftCam.release()
 
     cv.destroyAllWindows()
 
