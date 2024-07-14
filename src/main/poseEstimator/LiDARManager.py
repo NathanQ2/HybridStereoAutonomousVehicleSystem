@@ -59,7 +59,7 @@ class LiDARManager:
         #         break
 
     def __del__(self):
-        pass
+        self.f.close()
 
     def getLatest(self) -> LiDARMeasurement:
         self.f.seek(0)

@@ -2,6 +2,8 @@ import time
 import numpy as np
 import cv2 as cv
 from ultralytics import YOLO
+import json
+import os
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
@@ -9,57 +11,28 @@ from src.main.util.Util import Util
 
 
 def main():
-    rightCam = cv.VideoCapture(1)
-    leftCam = cv.VideoCapture(0)
+    # Load camera properties json file
+    rightCamPropsJson = None
+    leftCamPropsJson = None
+    with open(f"{os.getcwd()}/cameraCalib/rightCameraProperties.json", "r") as f:
+        rightCamPropsJson = f.read()
 
-    rightCamProps = CameraProperties(
-        "rightCam",
-        1280,
-        720,
-        48.80887495,
-        0.1905 / 2,
-        Util.inchesToMeters(2.5) - Util.millimetersToMeters(15.00),
-        Util.inchesToMeters(1),
-        cv.Mat(np.array([
-            [902.8483299082725, 0, 350.5262825687209],
-            [0, 911.9434175416623, 307.03326698389384],
-            [0, 0, 1]
-        ])),
-        cv.Mat(np.array([
-            [0.003172203922427552],
-            [0.35311385355303954],
-            [0.017672315681720594],
-            [0.011996156270444938],
-            [-1.114603391809918]
-        ]))
-    )
+    with open(f"{os.getcwd()}/cameraCalib/leftCameraProperties.json", "r") as f:
+        leftCamPropsJson = f.read()
 
-    leftCamProps = CameraProperties(
-        "leftCam",
-        640,
-        480,
-        90,
-        -0.1905 / 2,
-        Util.inchesToMeters(2.5) - Util.millimetersToMeters(15.00),
-        Util.inchesToMeters(1),
-        cv.Mat(np.array([
-            [608.6614183350229, 0, 277.64458894568304],
-            [0, 612.4757685162931, 205.69286653834774],
-            [0, 0, 1]
-        ])),
-        cv.Mat(np.array([
-            [-0.33956942504037607],
-            [0.12334483908902447],
-            [-0.0021704463640817846],
-            [0.0007264004080491259],
-            [-0.028929626021268803]
-        ]))
-    )
+    rightCamProps = CameraProperties.fromJson(json.loads(rightCamPropsJson))
+    leftCamProps = CameraProperties.fromJson(json.loads(leftCamPropsJson))
+
+    # init cameras
+    rightCam = cv.VideoCapture(rightCamProps.port)
+    leftCam = cv.VideoCapture(leftCamProps.port)
 
     poseEstimator = PoseEstimator(rightCamProps, leftCamProps)
 
     # Load the trained model
     model = YOLO("../../runs/detect/train/weights/best.pt")
+
+    # Performance statistics
     frames = 0
     startTimeSecs = time.perf_counter()
 
@@ -95,6 +68,7 @@ def main():
         # print(f"Frame time: {(frameEndTimeSecs - frameStartTimeSecs) * 1000}ms")
         # print(f"FPS: {frames / (frameEndTimeSecs - startTimeSecs)}")
 
+    # Clean up
     rightCam.release()
     leftCam.release()
 
