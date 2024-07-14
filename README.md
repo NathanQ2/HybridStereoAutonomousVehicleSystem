@@ -4,16 +4,18 @@ Pose estimation for autonomous vehicles using road signs. Not very user-friendly
 # Installation
 ## 1 - Clone the Repository
 ```git clone --recursive https://github.com/NathanQ2/HybridStereoAutonomousVehicleSystem.git```
-## 2 - Build RP_LiDAR_Interface_Server_Cpp
+## 2 - Build RP_LiDAR_Interface_Cpp
 ### 2.1 - Download and Install the Appropriate Drivers
 The [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) are required to communicate with the LiDAR over USB.
 ### 2.2 - Build Using Cmake
 ```
-cd vendor/RP_LiDAR_Interface_Server_Cpp
+cd vendor/RP_LiDAR_Interface_Cpp
 mkdir build
 cd build
 cmake ..
+cmake --build .
 ```
+
 
 # How It Works
 ## Hardware

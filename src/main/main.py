@@ -4,13 +4,26 @@ import cv2 as cv
 from ultralytics import YOLO
 import json
 import os
+import subprocess
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
 from src.main.util.Util import Util
 
 
+def startLiDARInterface():
+    path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
+    print(f"-- INFO -- Starting LiDAR Interface... PATH: {path}")
+    p = subprocess.Popen(
+        [path],
+        stdout=subprocess.PIPE,
+        text=True
+    )
+
+
 def main():
+    # startLiDARInterface()
+
     # Load camera properties json file
     rightCamPropsJson = None
     leftCamPropsJson = None
@@ -30,7 +43,7 @@ def main():
     poseEstimator = PoseEstimator(rightCamProps, leftCamProps)
 
     # Load the trained model
-    model = YOLO("../../runs/detect/train/weights/best.pt")
+    model = YOLO(f"{os.path.dirname(os.path.realpath(__file__))}/../../runs/detect/train/weights/best.pt")
 
     # Performance statistics
     frames = 0

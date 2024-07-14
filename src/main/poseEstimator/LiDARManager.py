@@ -2,6 +2,8 @@ import math
 from multiprocessing import shared_memory
 import mmap
 import struct
+import os
+import platform
 
 from src.main.util.Util import Util
 
@@ -46,17 +48,16 @@ class LiDARManager:
         # print(f"Shared Mem length: {len(self.shm.buf)}")
         # print(self.shm.buf.hex())
 
-        self.f = open(r"C:\ProgramData\boost_interprocess\C4020000_13030000\RP_LiDAR_Shared_Memory", 'rb')
+        currentPlatform = platform.system()
+        if (currentPlatform == "Windows"):
+            sharedMemoryPath = r"C:\ProgramData\boost_interprocess\\"
+            for root, dirs, files in os.walk(sharedMemoryPath):
+                for file in files:
+                    if (file == "RP_LiDAR_Shared_Memory"):
+                        sharedMemoryPath = os.path.join(root, file)
+                        self.f = open(sharedMemoryPath, 'rb')
 
-        # while (True):
-        #     bytes = f.read()
-        #     f.seek(0)
-        #     print(type(bytes))
-        #     print(f'0x{bytes.hex()}')
-        #     print(int.from_bytes(bytes, 'big', signed=False))
-        #     yn = input()
-        #     if (yn == 'y'):
-        #         break
+                        break
 
     def __del__(self):
         self.f.close()
