@@ -1,0 +1,3 @@
+[submodule "vendor/RP_LiDAR_Interface_Server_Cpp"]
+	path = vendor/RP_LiDAR_Interface_Server_Cpp
+	url = https://github.com/NathanQ2/RP_LiDAR_Interface_Cpp
