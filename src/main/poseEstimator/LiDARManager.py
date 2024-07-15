@@ -5,7 +5,7 @@ import struct
 import os
 import platform
 
-from src.main.util.Util import Util
+from util.Util import Util
 
 
 class Node:

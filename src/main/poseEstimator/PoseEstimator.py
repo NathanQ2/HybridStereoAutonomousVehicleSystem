@@ -6,7 +6,7 @@ import math
 from poseEstimator.CameraProperties import CameraProperties
 from poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
 
-from src.main.util.Util import Util
+from util.Util import Util
 
 
 class PoseEstimator:

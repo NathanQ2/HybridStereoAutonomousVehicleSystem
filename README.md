@@ -9,12 +9,15 @@ Pose estimation for autonomous vehicles using road signs. Not very user-friendly
 The [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) are required to communicate with the LiDAR over USB.
 ### 2.2 - Build Using Cmake
 ```
+cd HybridStereoAutonomousVehicleSystem
 cd vendor/RP_LiDAR_Interface_Cpp
 mkdir build
 cd build
 cmake ..
 cmake --build .
 ```
+## 3 - Install Required Python Packages
+```pip install -r requirements.txt```
 
 
 # How It Works

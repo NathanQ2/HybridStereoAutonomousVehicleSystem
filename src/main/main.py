@@ -8,7 +8,7 @@ import subprocess
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
-from src.main.util.Util import Util
+from util.Util import Util
 
 
 def startLiDARInterface():
