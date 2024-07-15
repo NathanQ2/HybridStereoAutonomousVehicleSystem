@@ -49,15 +49,19 @@ class LiDARManager:
         # print(self.shm.buf.hex())
 
         currentPlatform = platform.system()
+        sharedMemoryPath = None
         if (currentPlatform == "Windows"):
             sharedMemoryPath = r"C:\ProgramData\boost_interprocess\\"
             for root, dirs, files in os.walk(sharedMemoryPath):
                 for file in files:
                     if (file == "RP_LiDAR_Shared_Memory"):
                         sharedMemoryPath = os.path.join(root, file)
-                        self.f = open(sharedMemoryPath, 'rb')
 
                         break
+        else:  # Mac and linux should be the same
+            sharedMemoryPath = r"/tmp/boost_interprocess/RP_LiDAR_Shared_Memory"
+
+        self.f = open(sharedMemoryPath, 'rb')
 
     def __del__(self):
         self.f.close()
@@ -99,5 +103,5 @@ class LiDARManager:
 if (__name__ == "__main__"):
     liDAR = LiDARManager()
 
-    while(True):
+    while (True):
         liDAR.getLatest()

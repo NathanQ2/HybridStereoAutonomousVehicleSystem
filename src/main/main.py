@@ -5,6 +5,7 @@ from ultralytics import YOLO
 import json
 import os
 import subprocess
+import platform
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
@@ -12,7 +13,12 @@ from util.Util import Util
 
 
 def startLiDARInterface():
-    path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
+    currentPlatform = platform.system()
+    if (currentPlatform == "Windows"):
+        path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
+    else:
+        path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
+
     print(f"-- INFO -- Starting LiDAR Interface... PATH: {path}")
     p = subprocess.Popen(
         [path],

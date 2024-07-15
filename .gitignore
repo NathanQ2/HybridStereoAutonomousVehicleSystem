@@ -1,1 +1,16 @@
 runs
+venv
+
+# Mac os
+*.DS_Store
+
+# Jetbrains ides
+.idea
+.fleet
+
+# Vs code
+.vs
+
+
+# py cache
+*/__pycache__
