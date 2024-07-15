@@ -2,7 +2,7 @@ runs
 venv
 
 # Mac os
-*.DS_Store
+.DS_Store
 
 # Jetbrains ides
 .idea
@@ -13,4 +13,4 @@ venv
 
 
 # py cache
-*/__pycache__
+__pycache__
