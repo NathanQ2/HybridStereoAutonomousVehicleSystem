@@ -10,11 +10,11 @@ from util.Util import Util
 
 
 class PoseEstimator:
-    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties):
+    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
-        self.liDARManager = LiDARManager()
+        self.liDARManager = LiDARManager(lidarDevice)
         print(f"Baseline: {self.baseline}")
 
     def update(self, rFrame: cv.Mat, lFrame: cv.Mat, rResults: list[Results], lResults: list[Results]):
@@ -37,12 +37,12 @@ class PoseEstimator:
         rVertAngle = -((vr - (480 / 2)) / 480 * rVertFOV)
         rHorizAngle = (ur - (640 / 2)) / 640 * self.rCameraProps.hfov
         lHorizAngle = (ul - (640 / 2)) / 640 * self.lCameraProps.hfov
-        print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}")
+        # print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}")
 
         if (-10 < rVertAngle < 10 and -15.5 < rHorizAngle < 13):
             shouldUseLiDAR = True
 
-        print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
+        # print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
 
         # x = (b(ul - ox)) / disparity
         # y = (b*fx(vl - oy)) / (fy*disparity)

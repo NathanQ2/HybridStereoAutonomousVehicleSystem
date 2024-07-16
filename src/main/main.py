@@ -4,31 +4,20 @@ import cv2 as cv
 from ultralytics import YOLO
 import json
 import os
+import sys
 import subprocess
 import platform
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
+
+
 from util.Util import Util
 
 
-def startLiDARInterface():
-    currentPlatform = platform.system()
-    if (currentPlatform == "Windows"):
-        path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
-    else:
-        path = f"{os.path.dirname(os.path.realpath(__file__))}/../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
-
-    print(f"-- INFO -- Starting LiDAR Interface... PATH: {path}")
-    p = subprocess.Popen(
-        [path],
-        stdout=subprocess.PIPE,
-        text=True
-    )
-
-
 def main():
-    # startLiDARInterface()
+    if (len(sys.argv) != 2):
+        print(f"ERR: Invalid number of arguments, expected 2 but got {len(sys.argv)}.")
 
     # Load camera properties json file
     rightCamPropsJson = None
@@ -46,7 +35,7 @@ def main():
     rightCam = cv.VideoCapture(rightCamProps.port)
     leftCam = cv.VideoCapture(leftCamProps.port)
 
-    poseEstimator = PoseEstimator(rightCamProps, leftCamProps)
+    poseEstimator = PoseEstimator(rightCamProps, leftCamProps, sys.argv[1])
 
     # Load the trained model
     model = YOLO(f"{os.path.dirname(os.path.realpath(__file__))}/../../runs/detect/train/weights/best.pt")

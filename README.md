@@ -1,13 +1,34 @@
 # Generic Autonomous Vehicle System
-Pose estimation for autonomous vehicles using road signs. Not very user-friendly at the moment.
+Road sign pose estimation for autonomous vehicles.
 
 # Installation
-## 1 - Clone the Repository
+## 1 - Requirements
+1. [Cmake](https://cmake.org/)
+2. [Python 3.12+](https://www.python.org/) (You probably will be able to get away with an older version of Python, but I've been developing on 3.12)
+3. [Git](https://git-scm.com/)
+4. [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads)
+5. [PyTorch](https://pytorch.org/) (Ultralytics will automatically install PyTorch but installing manually is recommended)
+6. [Ultralytics](https://docs.ultralytics.com/) (Ultralytics will automatically be installed by setup scripts)
+## 2 - Clone the Repository
 ```git clone --recursive https://github.com/NathanQ2/HybridStereoAutonomousVehicleSystem.git```
-## 2 - Build RP_LiDAR_Interface_Cpp
-### 2.1 - Download and Install the Appropriate Drivers
+
+## 3 - Automatic Installation
+### 3.1 - Windows
+```
+cd scripts
+setupt.bat
+```
+### 3.2 - Mac/Linux
+```
+cd scripts
+bash setupt.sh
+```
+
+## 4 Manual Installation
+### 4.1 - Build RP_LiDAR_Interface_Cpp
+#### 4.1.1 - Download and Install the Appropriate Drivers
 The [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads) are required to communicate with the LiDAR over USB.
-### 2.2 - Build Using Cmake
+#### 4.1.2 - Build Using Cmake
 ```
 cd HybridStereoAutonomousVehicleSystem
 cd vendor/RP_LiDAR_Interface_Cpp
@@ -15,9 +36,21 @@ mkdir build
 cd build
 cmake ..
 cmake --build .
+cd ../../../
 ```
-## 3 - Install Required Python Packages
-```pip install -r requirements.txt```
+### 4.2 - Install Required Python Packages
+```python3 -m pip install -r requirements.txt```
+### 4.3 - Training the Model
+At the moment, training configuration parameters can be edited in the [train.py](src/test/train.py) file. I trained with ```epochs=1000, device=[0], batch=-0.90``` and got alright results.
+
+```python3 src/test/train.py```
+### 4.4 - Run the [main.py](src/main/main.py) File!
+#### 4.4.1 - Windows
+```python3 src/main/main.py [lidar com port Ex: com3]```
+#### 4.4.2 - Linux
+```python3 src/main/main.py [lidar com port Ex: /dev/ttyUSB0]```
+#### 4.4.3 - Mac
+```python3 src/main/main.py [lidar com port Ex: /dev/ttySLAB_USBtoUART]```
 
 
 # How It Works

@@ -4,6 +4,8 @@ import mmap
 import struct
 import os
 import platform
+import subprocess
+import time
 
 from util.Util import Util
 
@@ -41,16 +43,13 @@ class LiDARMeasurement:
 
 
 class LiDARManager:
-    def __init__(self):
-        # self.shm = shared_memory.SharedMemory(create=True, size=4, name=r"RP_LiDAR_Shared_Memory")
-
-        # print(self.shm.name)
-        # print(f"Shared Mem length: {len(self.shm.buf)}")
-        # print(self.shm.buf.hex())
+    def __init__(self, lidarDevice: str):
+        print(f"-- INFO -- Starting LiDAR Interface...")
 
         currentPlatform = platform.system()
         sharedMemoryPath = None
         if (currentPlatform == "Windows"):
+            interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
             sharedMemoryPath = r"C:\ProgramData\boost_interprocess\\"
             for root, dirs, files in os.walk(sharedMemoryPath):
                 for file in files:
@@ -59,12 +58,37 @@ class LiDARManager:
 
                         break
         else:  # Mac and linux should be the same
+            interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
             sharedMemoryPath = r"/tmp/boost_interprocess/RP_LiDAR_Shared_Memory"
+
+        print(f"-- INFO -- LiDAR Device: {lidarDevice}")
+
+        self.p = subprocess.Popen(
+            [interfacePath, lidarDevice],
+            stdout=subprocess.PIPE,
+            text=True
+        )
+
+        time.sleep(2)
+
+        print("-- INFO -- Starting RP_LiDAR_Interface, if the application hangs for an unreasonable amount of time")
+        output = self.p.stdout.read(1)
+        while (output.find("Scanning") == -1):
+            print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT: {output}", end='\r')
+            if (self.p.poll() is None):  # Program still running
+                output += self.p.stdout.read(1)
+            else:
+                print(f"-- ERROR -- RP_LiDAR_Interface has crashed with exit code {self.p.returncode} during startup!")
+                exit(1)
+
+        print(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
+
 
         self.f = open(sharedMemoryPath, 'rb')
 
     def __del__(self):
         self.f.close()
+        self.p.terminate()
 
     def getLatest(self) -> LiDARMeasurement:
         self.f.seek(0)
@@ -98,10 +122,3 @@ class LiDARManager:
             nodes.append(Node(angleInt, distInt, qualityInt, flagInt))
 
         return LiDARMeasurement(timestampInt, nodes)
-
-
-if (__name__ == "__main__"):
-    liDAR = LiDARManager()
-
-    while (True):
-        liDAR.getLatest()
