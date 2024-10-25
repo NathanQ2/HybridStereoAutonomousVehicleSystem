@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import cv2 as cv
+from pasta.base.ast_utils_test import UtilsTest
 from ultralytics import YOLO
 import json
 import os
@@ -11,10 +12,13 @@ import platform
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
 from src.main.VisionObject import VisionObject
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.poseEstimator.StopSign import StopSign
 
 
 class VisionSystem:
-    def __init__(self, leftCamProps: CameraProperties, rightCampProps: CameraProperties, lidarDevice: str, modelPath: os.path):
+    def __init__(self, leftCamProps: CameraProperties, rightCampProps: CameraProperties, lidarDevice: str,
+                 modelPath: os.path):
         self.leftCamProps = leftCamProps
         self.rightCamProps = rightCampProps
 
@@ -26,6 +30,54 @@ class VisionSystem:
 
         # Load the trained model
         self.model = YOLO(modelPath)
+
+    def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
+        # Link left and right vision objects
+        linkedObjects: dict[int, tuple[VisionObject, VisionObject]] = {}
+
+        # TODO: Tune these
+        # Tolerance for box dimensions (in pixels)
+        DIMENSION_TOLERANCE = 5
+        # Tolerance for position
+        # (multiplied by box area b/c we want this to scale based off distance away from camera system)
+        POSITION_TOLERANCE = 20
+
+        for lObject, i in lObjects, range(len(lObjects)):
+            for rObject in rObjects:
+                if (rObject.objectType != lObject.objectType):
+                    continue
+
+                # If the width/height of the two objects are not similar these two objects are probably not the same
+                if (not Util.isSimilar(rObject.w, lObject.w, DIMENSION_TOLERANCE)):
+                    continue
+                if (not Util.isSimilar(rObject.h, lObject.h, DIMENSION_TOLERANCE)):
+                    continue
+
+                rBoxArea = rObject.w * rObject.h
+                lBoxArea = lObject.w * lObject.h
+                boxAreaAvg = (rBoxArea + lBoxArea) / 2
+                # If the position of the two objects are not similar these two objects are probably not the same
+                if (not Util.isSimilar(rObject.x, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                    continue
+                if (not Util.isSimilar(rObject.x, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                    continue
+
+                # These two objects are probably the same
+                linkedObjects[i] = (lObject, rObject)
+                break
+
+        poseObjects: list[PoseObject] = []
+        for i in linkedObjects:
+            lObject = linkedObjects[i][0]
+            rObject = linkedObjects[i][1]
+            x, y, z = self.poseEstimator.estimate(lObject, rObject)
+
+            match rObject.objectType:
+                case VisionObjectType.StopSign:
+                    poseObjects.append(StopSign(x, y, z))
+                # TODO: Add more signs
+
+        return poseObjects
 
     def start(self):
         # Performance statistics
@@ -41,19 +93,25 @@ class VisionSystem:
             rFrame = cv.undistort(rFrame, self.rightCamProps.calibrationMatrix, self.rightCamProps.distortionCoefficients)
             lFrame = cv.undistort(lFrame, self.leftCamProps.calibrationMatrix, self.leftCamProps.distortionCoefficients)
 
-            rResults = model.predict(rFrame, conf=0.70, verbose=False)
-            lResults = model.predict(lFrame, conf=0.70, verbose=False)
+            MIN_CONFIDENCE = 0.70
 
+            rResults = model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
+            lResults = model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
+
+            # Debug drawing
             processedRFrame = rResults[0].plot()
             processedLFrame = lResults[0].plot()
 
+            # Generate vision objects from model results
             lObjects = VisionObject.fromResults(lResults)
             rObjects = VisionObject.fromResults(rResults)
 
-            if (len(lObjects) != 0 and len(rObjects) != 0):
-                x, y, z, = poseEstimator.update(rFrame, lFrame, rResults, lResults)
+            objects = self.toPoseObjects(lObjects, rObjects)
 
-                print(f"POSE: ({Util.metersToInches(x)}, {Util.metersToInches(y)}, {Util.metersToInches(z)})")
+            if (len(lObjects) != 0 and len(rObjects) != 0):
+                x, y, z, = poseEstimator.estimate(lObjects, rObjects)
+
+                print(f"POSE: ({Util.metersToInches(x)}in, {Util.metersToInches(y)}in, {Util.metersToInches(z)}in)")
 
             cv.imshow("Processed Right Frame", processedRFrame)
             cv.imshow("Processed Left Frame", processedLFrame)

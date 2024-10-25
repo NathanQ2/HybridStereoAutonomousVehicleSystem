@@ -8,6 +8,8 @@ from poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
 
 from util.Util import Util
 
+from src.main.VisionObject import VisionObject
+
 
 class PoseEstimator:
     def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
@@ -17,22 +19,19 @@ class PoseEstimator:
         self.liDARManager = LiDARManager(lidarDevice)
         print(f"Baseline: {self.baseline}")
 
-    def update(self, rFrame: cv.Mat, lFrame: cv.Mat, rResults: list[Results], lResults: list[Results]):
+    def getPoseFromObject(self, lObject: VisionObject, rObject: VisionObject):
         shouldUseLiDAR = False
         # print(f"LiDAR Timestamp: {measurement.timestamp}")
-        rBoxes = rResults[0].boxes.xywh
-        lBoxes = lResults[0].boxes.xywh
 
-        rBox = rBoxes[0]
-        lBox = lBoxes[0]
+        ur = rObject.x
+        vr = rObject.y
+        ul = lObject.x
+        vl = lObject.y
 
-        ur = rBox[0]
-        vr = rBox[1]
-        ul = lBox[0]
-        vl = lBox[1]
         disparity = abs(ul - ur)
 
         rVertFOV = self.rCameraProps.hfov * (480 / 640)
+
         # Frame is undistorted, so this should be accurate enough??
         rVertAngle = -((vr - (480 / 2)) / 480 * rVertFOV)
         rHorizAngle = (ur - (640 / 2)) / 640 * self.rCameraProps.hfov
@@ -59,12 +58,17 @@ class PoseEstimator:
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
         else:
             z = (self.baseline * self.lCameraProps.calibrationMatrix[0][0]) / disparity
-        x = (self.baseline * (ul - self.lCameraProps.calibrationMatrix[0][2])) / disparity
-        y = -(self.baseline * self.lCameraProps.calibrationMatrix[0][0] * (vl - self.lCameraProps.calibrationMatrix[1][2])) / (self.lCameraProps.calibrationMatrix[1][1] * disparity)
 
+        x = (self.baseline * (ul - self.lCameraProps.calibrationMatrix[0][2])) / disparity
+        y = -(self.baseline * self.lCameraProps.calibrationMatrix[0][0] * (
+                vl - self.lCameraProps.calibrationMatrix[1][2])) / (
+                    self.lCameraProps.calibrationMatrix[1][1] * disparity)
 
         x = x + self.lCameraProps.x
         y = y + self.lCameraProps.y
         z = z + self.lCameraProps.z
 
         return (x, y, z)
+
+    def estimate(self, lObject: VisionObject, rObject: VisionObject):
+        return self.getPoseFromObject(lObject, rObject)

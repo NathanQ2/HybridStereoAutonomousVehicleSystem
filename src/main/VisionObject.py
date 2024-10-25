@@ -1,5 +1,6 @@
 from scipy.special import cases
 from ultralytics import YOLO
+from ultralytics.engine.results import Results
 
 
 # Type of object recognized by vision
@@ -23,14 +24,15 @@ class VisionObjectType(Enum):
                 return VisionObjectType.Regulatory
 
 
-# Represents an object detected by vision
+# Represents an object detected by a singular camera
 class VisionObject:
-    def __init__(self, x: float, y: float, w: float, h: float, objectType: VisionObjectType):
+    def __init__(self, x: float, y: float, w: float, h: float, objectType: VisionObjectType, conf: float):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
         self.objectType = objectType
+        self.conf = conf
 
     @staticmethod
     def fromResults(results: Results) -> list[VisionObject]:
@@ -46,7 +48,8 @@ class VisionObject:
                     pos[1],
                     pos[2],
                     pos[3],
-                    VisionObjectType.fromClassId(results.names, box.id)
+                    VisionObjectType.fromClassId(results.names, box.id),
+                    box.conf[0]
                 )
             )
 

@@ -12,5 +12,12 @@ class Util:
         return mm / 1000
 
     @staticmethod
-    def metersToMillimeterss(m):
+    def metersToMillimeters(m):
         return 1000 * m
+
+    @staticmethod
+    def isSimilar(a: float, b: float, tolerance: float) -> bool:
+        if (abs(a - b) < tolerance):
+            return True
+
+        return False
