@@ -6,6 +6,7 @@ import os
 import platform
 import subprocess
 import time
+import socket
 
 from util.Util import Util
 
@@ -45,33 +46,29 @@ class LiDARMeasurement:
 class LiDARManager:
     def __init__(self, lidarDevice: str):
         print(f"-- INFO -- Starting LiDAR Interface...")
-
-        currentPlatform = platform.system()
-        sharedMemoryPath = None
-        if (currentPlatform == "Windows"):
-            interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp.exe"
-            sharedMemoryPath = r"C:\ProgramData\boost_interprocess\\"
-            for root, dirs, files in os.walk(sharedMemoryPath):
-                for file in files:
-                    if (file == "RP_LiDAR_Shared_Memory"):
-                        sharedMemoryPath = os.path.join(root, file)
-
-                        break
-        else:  # Mac and linux should be the same
-            interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
-            sharedMemoryPath = r"/tmp/boost_interprocess/RP_LiDAR_Shared_Memory"
-
         print(f"-- INFO -- LiDAR Device: {lidarDevice}")
 
+        interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
+
+        # Setup socket
+        self.IP = "127.0.0.1"
+        self.PORT = 5005
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.bind((self.IP, self.PORT))
+
         self.p = subprocess.Popen(
-            [interfacePath, lidarDevice],
+            [interfacePath, lidarDevice, self.IP, str(self.PORT)],
             stdout=subprocess.PIPE,
             text=True
         )
 
-        time.sleep(3)
+        self.sock.listen(1)
+        print("-- INFO -- Waiting for connection...")
+        self.conn, self.addr = self.sock.accept()
 
-        print("-- INFO -- Starting RP_LiDAR_Interface, if the application hangs for an unreasonable amount of time")
+        # time.sleep(3)
+
+        # print("-- INFO -- Starting RP_LiDAR_Interface, if the application hangs for an unreasonable amount of time")
         output = self.p.stdout.read(1)
         while (output.find("Scanning") == -1):
             print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT: {output}", end='\r')
@@ -83,37 +80,33 @@ class LiDARManager:
 
         print(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
 
-        self.f = open(sharedMemoryPath, 'rb')
-
     def __del__(self):
-        self.f.close()
         self.p.terminate()
 
     def getLatest(self) -> LiDARMeasurement:
-        self.f.seek(0)
-        timestampBytes = self.f.read(8)
+        timestampBytes = self.conn.recv(8)
         timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
         # print(f"TimestampBytes: {timestampBytes.hex()} TimestampInt: {timestampInt}")
 
         nodes = []
         nodeSizeBytes = 2 + 4 + 1 + 1
         for i in range(291):
-            angleBytes = self.f.read(2)
+            angleBytes = self.conn.recv(2)
             angleInt = int.from_bytes(angleBytes, 'little', signed=False)
             # print(f"AngleBytes: {angleBytes.hex()}")
             # print(f"AngleInt: {angleInt}\n")
 
-            distBytes = self.f.read(4)
+            distBytes = self.conn.recv(4)
             distInt = int.from_bytes(distBytes, 'little', signed=False)
             # print(f"DistBytes: {distBytes.hex()}")
             # print(f"DistInt: {distInt}\n")
 
-            qualityBytes = self.f.read(1)
+            qualityBytes = self.conn.recv(1)
             qualityInt = int.from_bytes(qualityBytes, 'little', signed=False)
             # print(f"QualityBytes: {qualityBytes.hex()}")
             # print(f"QualityInt: {qualityInt}\n")
 
-            flagBytes = self.f.read(1)
+            flagBytes = self.conn.recv(1)
             flagInt = int.from_bytes(flagBytes, 'little', signed=False)
             # print(f"FlagBytes: {flagBytes.hex()}")
             # print(f"FlagInt: {flagInt}\n\n")
