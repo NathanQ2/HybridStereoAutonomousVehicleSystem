@@ -47,7 +47,7 @@ class VisionObject:
                     pos[1],
                     pos[2],
                     pos[3],
-                    VisionObjectType.fromClassId(results.names, 1),
+                    VisionObjectType.fromClassId(results.names, int(box.cls[0])),
                     box.conf[0]
                 )
             )

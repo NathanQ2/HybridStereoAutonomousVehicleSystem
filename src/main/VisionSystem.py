@@ -13,6 +13,8 @@ from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
 from poseEstimator.PoseObject import PoseObject
 from poseEstimator.StopSign import StopSign
+from poseEstimator.SpeedLimitSign import SpeedLimitSign
+from poseEstimator.WarningSign import WarningSign
 from VisionObject import VisionObject, VisionObjectType
 from util.Util import Util
 
@@ -38,10 +40,10 @@ class VisionSystem:
 
         # TODO: Tune these
         # Tolerance for box dimensions (in pixels)
-        DIMENSION_TOLERANCE = 50000
+        DIMENSION_TOLERANCE = 200
         # Tolerance for position
         # (multiplied by box area b/c we want this to scale based off distance away from camera system)
-        POSITION_TOLERANCE = 200000
+        POSITION_TOLERANCE = 1000 / 128935
 
         # print(len(lObjects))
 
@@ -53,17 +55,28 @@ class VisionSystem:
 
                 # If the width/height of the two objects are not similar these two objects are probably not the same
                 if (not Util.isSimilar(rObject.w, lObject.w, DIMENSION_TOLERANCE)):
+                    print("w dimension out of tolerance")
                     continue
                 if (not Util.isSimilar(rObject.h, lObject.h, DIMENSION_TOLERANCE)):
+                    print("h dimension out of tolerance")
                     continue
 
                 rBoxArea = rObject.w * rObject.h
                 lBoxArea = lObject.w * lObject.h
                 boxAreaAvg = (rBoxArea + lBoxArea) / 2
+
+                # print(f"Dimension delta w: {abs(rObject.w - lObject.w)}")
+                # print(f"Dimension delta h: {abs(rObject.h - lObject.h)}")
+                # print(f"Position delta x: {abs(rObject.x - lObject.x)}")
+                # print(f"Position delta y: {abs(rObject.y - lObject.y)}")
+                # print(f"Box Area: {boxAreaAvg}")
+
                 # If the position of the two objects are not similar these two objects are probably not the same
-                if (not Util.isSimilar(rObject.x, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                if (not Util.isSimilar(rObject.x, lObject.x, POSITION_TOLERANCE * boxAreaAvg)):
+                    print("x pos out of tolerance")
                     continue
-                if (not Util.isSimilar(rObject.x, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                if (not Util.isSimilar(rObject.y, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                    print("y pos out of tolerance")
                     continue
 
                 # These two objects are probably the same
@@ -81,6 +94,10 @@ class VisionSystem:
             match rObject.objectType:
                 case VisionObjectType.StopSign:
                     poseObjects.append(StopSign(x, y, z))
+                case VisionObjectType.Regulatory:
+                    poseObjects.append(SpeedLimitSign(x, y, z, 55))
+                case VisionObjectType.Warning:
+                    poseObjects.append(WarningSign(x, y, z))
                 # TODO: Add more signs
 
         return poseObjects
