@@ -1,3 +1,5 @@
+from VisionObject import VisionObject, VisionObjectType
+
 
 # Represents object that has had its pose estimated
 class PoseObject:

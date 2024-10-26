@@ -69,7 +69,7 @@ class LiDARManager:
             text=True
         )
 
-        time.sleep(2)
+        time.sleep(3)
 
         print("-- INFO -- Starting RP_LiDAR_Interface, if the application hangs for an unreasonable amount of time")
         output = self.p.stdout.read(1)
@@ -82,7 +82,6 @@ class LiDARManager:
                 exit(1)
 
         print(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
-
 
         self.f = open(sharedMemoryPath, 'rb')
 

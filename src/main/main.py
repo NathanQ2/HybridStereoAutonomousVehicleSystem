@@ -8,15 +8,16 @@ import sys
 import subprocess
 import platform
 
-from src.main.Constants import Constants
-from src.main.VisionSystem import VisionSystem
-
 from util.Util import Util
+from VisionSystem import VisionSystem
+from poseEstimator.CameraProperties import CameraProperties
 
 
 def main():
     if (len(sys.argv) != 3):
         print(f"ERR: Invalid number of arguments, expected 3 but got {len(sys.argv)}.")
+
+        return 1
 
     # Load camera properties json file
     rightCamPropsJson = None

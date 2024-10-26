@@ -1,3 +1,6 @@
+from poseEstimator.PoseObject import PoseObject
+from VisionObject import VisionObjectType
+
 
 class StopSign(PoseObject):
     def __init__(self, x: float, y: float, z: float):

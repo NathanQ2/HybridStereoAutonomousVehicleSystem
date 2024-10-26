@@ -1,4 +1,4 @@
-from scipy.special import cases
+from enum import Enum
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
@@ -10,7 +10,7 @@ class VisionObjectType(Enum):
     Regulatory = 2
 
     @staticmethod
-    def fromClassId(names: Dict[int, str], id: int) -> VisionObjectType:
+    def fromClassId(names: dict[int, str], id: int):
         return VisionObjectType.fromClassName(names[id])
 
     @staticmethod
@@ -35,12 +35,11 @@ class VisionObject:
         self.conf = conf
 
     @staticmethod
-    def fromResults(results: Results) -> list[VisionObject]:
+    def fromResults(results: Results):
         objects = []
-        print(f"Classes Dict: {results.names}")
 
-        for box in results.Boxes:
-            pos = box.xywh
+        for box in results.boxes:
+            pos = box.xywh[0]
 
             objects.append(
                 VisionObject(
@@ -48,7 +47,7 @@ class VisionObject:
                     pos[1],
                     pos[2],
                     pos[3],
-                    VisionObjectType.fromClassId(results.names, box.id),
+                    VisionObjectType.fromClassId(results.names, 1),
                     box.conf[0]
                 )
             )

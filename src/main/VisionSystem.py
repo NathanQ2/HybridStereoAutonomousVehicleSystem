@@ -11,9 +11,10 @@ import platform
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
-from src.main.VisionObject import VisionObject
-from src.main.poseEstimator.PoseObject import PoseObject
-from src.main.poseEstimator.StopSign import StopSign
+from poseEstimator.PoseObject import PoseObject
+from poseEstimator.StopSign import StopSign
+from VisionObject import VisionObject, VisionObjectType
+from util.Util import Util
 
 
 class VisionSystem:
@@ -37,12 +38,15 @@ class VisionSystem:
 
         # TODO: Tune these
         # Tolerance for box dimensions (in pixels)
-        DIMENSION_TOLERANCE = 5
+        DIMENSION_TOLERANCE = 50000
         # Tolerance for position
         # (multiplied by box area b/c we want this to scale based off distance away from camera system)
-        POSITION_TOLERANCE = 20
+        POSITION_TOLERANCE = 200000
 
-        for lObject, i in lObjects, range(len(lObjects)):
+        # print(len(lObjects))
+
+        for i in range(len(lObjects)):
+            lObject = lObjects[i]
             for rObject in rObjects:
                 if (rObject.objectType != lObject.objectType):
                     continue
@@ -66,6 +70,8 @@ class VisionSystem:
                 linkedObjects[i] = (lObject, rObject)
                 break
 
+        # print(f"LINKED: {linkedObjects}")
+
         poseObjects: list[PoseObject] = []
         for i in linkedObjects:
             lObject = linkedObjects[i][0]
@@ -87,31 +93,30 @@ class VisionSystem:
         while (True):
             frameStartTimeSecs = time.perf_counter()
 
-            rRet, rFrame = rightCam.read()
-            lRet, lFrame = leftCam.read()
+            rRet, rFrame = self.rightCam.read()
+            lRet, lFrame = self.leftCam.read()
 
             rFrame = cv.undistort(rFrame, self.rightCamProps.calibrationMatrix, self.rightCamProps.distortionCoefficients)
             lFrame = cv.undistort(lFrame, self.leftCamProps.calibrationMatrix, self.leftCamProps.distortionCoefficients)
 
             MIN_CONFIDENCE = 0.70
 
-            rResults = model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
-            lResults = model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
+            rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
+            lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
             processedRFrame = rResults[0].plot()
             processedLFrame = lResults[0].plot()
 
             # Generate vision objects from model results
-            lObjects = VisionObject.fromResults(lResults)
-            rObjects = VisionObject.fromResults(rResults)
+            lObjects = VisionObject.fromResults(lResults[0])
+            rObjects = VisionObject.fromResults(rResults[0])
 
             objects = self.toPoseObjects(lObjects, rObjects)
+            print(objects)
 
-            if (len(lObjects) != 0 and len(rObjects) != 0):
-                x, y, z, = poseEstimator.estimate(lObjects, rObjects)
-
-                print(f"POSE: ({Util.metersToInches(x)}in, {Util.metersToInches(y)}in, {Util.metersToInches(z)}in)")
+            for obj in objects:
+                print(f"POSE OBJECT ({obj.objectType}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
 
             cv.imshow("Processed Right Frame", processedRFrame)
             cv.imshow("Processed Left Frame", processedLFrame)
