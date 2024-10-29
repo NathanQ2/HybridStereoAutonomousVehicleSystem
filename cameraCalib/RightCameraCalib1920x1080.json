@@ -1,0 +1,38 @@
+{
+    "camera": "C270 HD WEBCAM (046d:0825)",
+    "platform": "Macintosh; Intel Mac OS X 10_15_7",
+    "avg_reprojection_error": 0.8856728919388777,
+    "camera_matrix": [
+        [
+            2136.651189116548,
+            0,
+            1017.5551309479015
+        ],
+        [
+            0,
+            2155.423854224789,
+            491.7326898021337
+        ],
+        [
+            0,
+            0,
+            1
+        ]
+    ],
+    "distortion_coefficients": [
+        0.1947389099586247,
+        -0.4378239199371739,
+        -0.006919984229621114,
+        0.005882513339448832,
+        -0.8125853302687356
+    ],
+    "distortion_model": "rectilinear",
+    "img_size": [
+        1920,
+        1080
+    ],
+    "calibration_time": "Tue, 29 Oct 2024 22:45:55 GMT",
+    "caveats": [
+        "upscaled"
+    ]
+}

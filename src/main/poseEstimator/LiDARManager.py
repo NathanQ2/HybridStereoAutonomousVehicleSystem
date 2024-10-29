@@ -48,7 +48,7 @@ class LiDARManager:
         print(f"-- INFO -- Starting LiDAR Interface...")
         print(f"-- INFO -- LiDAR Device: {lidarDevice}")
 
-        interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/Debug/RP_LiDAR_Interface_Cpp"
+        interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/RP_LiDAR_Interface_Cpp"
 
         # Setup socket
         self.IP = "127.0.0.1"
@@ -64,6 +64,7 @@ class LiDARManager:
 
         self.sock.listen(1)
         print("-- INFO -- Waiting for connection...")
+        # TODO: add cleanup for self.conn and self.sock
         self.conn, self.addr = self.sock.accept()
 
         # time.sleep(3)

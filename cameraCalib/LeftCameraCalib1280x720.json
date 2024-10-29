@@ -1,0 +1,35 @@
+{
+    "camera": "HD Web Camera (05a3:9331)",
+    "platform": "Macintosh; Intel Mac OS X 10_15_7",
+    "avg_reprojection_error": 0.33854990274796076,
+    "camera_matrix": [
+        [
+            973.0154236612332,
+            0,
+            554.9693480447139
+        ],
+        [
+            0,
+            977.6531345949186,
+            308.82696068127444
+        ],
+        [
+            0,
+            0,
+            1
+        ]
+    ],
+    "distortion_coefficients": [
+        -0.3617007417720118,
+        0.15128631032274578,
+        -0.0006527259339420204,
+        -0.0010465227889859484,
+        -0.03659413391535098
+    ],
+    "distortion_model": "rectilinear",
+    "img_size": [
+        1280,
+        720
+    ],
+    "calibration_time": "Tue, 29 Oct 2024 22:39:49 GMT"
+}

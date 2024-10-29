@@ -1,7 +1,6 @@
 import time
 import numpy as np
 import cv2 as cv
-from pasta.base.ast_utils_test import UtilsTest
 from ultralytics import YOLO
 import json
 import os
@@ -54,12 +53,12 @@ class VisionSystem:
                     continue
 
                 # If the width/height of the two objects are not similar these two objects are probably not the same
-                if (not Util.isSimilar(rObject.w, lObject.w, DIMENSION_TOLERANCE)):
-                    print("w dimension out of tolerance")
-                    continue
-                if (not Util.isSimilar(rObject.h, lObject.h, DIMENSION_TOLERANCE)):
-                    print("h dimension out of tolerance")
-                    continue
+                # if (not Util.isSimilar(rObject.w, lObject.w, DIMENSION_TOLERANCE)):
+                #     print("w dimension out of tolerance")
+                #     continue
+                # if (not Util.isSimilar(rObject.h, lObject.h, DIMENSION_TOLERANCE)):
+                #     print("h dimension out of tolerance")
+                #     continue
 
                 rBoxArea = rObject.w * rObject.h
                 lBoxArea = lObject.w * lObject.h
@@ -113,8 +112,34 @@ class VisionSystem:
             rRet, rFrame = self.rightCam.read()
             lRet, lFrame = self.leftCam.read()
 
-            rFrame = cv.undistort(rFrame, self.rightCamProps.calibrationMatrix, self.rightCamProps.distortionCoefficients)
-            lFrame = cv.undistort(lFrame, self.leftCamProps.calibrationMatrix, self.leftCamProps.distortionCoefficients)
+            # Get new camera matrix scaled for correct aspect ratio
+            rNewMatrix, rRoi = cv.getOptimalNewCameraMatrix(
+                self.rightCamProps.calibrationMatrix,
+                self.rightCamProps.distortionCoefficients.reshape(-1, 1),
+                (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
+                1,
+                (self.rightCamProps.widthNative, self.rightCamProps.heightNative)
+            )
+
+            lNewMatrix, lRoi = cv.getOptimalNewCameraMatrix(
+                self.leftCamProps.calibrationMatrix,
+                self.leftCamProps.distortionCoefficients.reshape(-1, 1),
+                (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
+                1,
+                (self.leftCamProps.widthNative, self.leftCamProps.heightNative)
+            )
+
+            rFrame = cv.undistort(
+                rFrame,
+                self.rightCamProps.calibrationMatrix,
+                self.rightCamProps.distortionCoefficients,
+            )
+
+            lFrame = cv.undistort(
+                lFrame,
+                self.leftCamProps.calibrationMatrix,
+                self.leftCamProps.distortionCoefficients,
+            )
 
             MIN_CONFIDENCE = 0.70
 
