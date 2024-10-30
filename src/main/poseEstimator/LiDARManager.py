@@ -56,6 +56,7 @@ class LiDARManager:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.IP, self.PORT))
 
+        # Make interface path sys.argv
         self.p = subprocess.Popen(
             [interfacePath, lidarDevice, self.IP, str(self.PORT)],
             stdout=subprocess.PIPE,

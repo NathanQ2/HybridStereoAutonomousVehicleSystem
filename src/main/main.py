@@ -7,13 +7,16 @@ import os
 import sys
 import subprocess
 import platform
+import asyncio
+
 
 from util.Util import Util
 from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
+# TODO: make logging stuff
 
-def main():
+async def main():
     if (len(sys.argv) != 3):
         print(f"ERR: Invalid number of arguments, expected 3 but got {len(sys.argv)}.")
 
@@ -33,8 +36,8 @@ def main():
 
     vision = VisionSystem(leftCamProps, rightCamProps, sys.argv[1], sys.argv[2])
 
-    vision.start()
+    await vision.start()
 
 
 if (__name__ == "__main__"):
-    main()
+    asyncio.run(main())

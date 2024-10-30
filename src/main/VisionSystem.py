@@ -7,6 +7,7 @@ import os
 import sys
 import subprocess
 import platform
+import asyncio
 
 from poseEstimator.PoseEstimator import PoseEstimator
 from poseEstimator.CameraProperties import CameraProperties
@@ -15,6 +16,7 @@ from poseEstimator.StopSign import StopSign
 from poseEstimator.SpeedLimitSign import SpeedLimitSign
 from poseEstimator.WarningSign import WarningSign
 from VisionObject import VisionObject, VisionObjectType
+from src.main.VisualizerManager import VisualizerManager
 from util.Util import Util
 
 
@@ -32,6 +34,9 @@ class VisionSystem:
 
         # Load the trained model
         self.model = YOLO(modelPath)
+
+        # self.visualizer = VisualizerManager("/Users/nathanquartaro/DevLocal/GodotProjects/hybridstereoautonomousvehiclesystemvisualizer/builds/mac/HybridStereoAutonomousVehicleSystemVisualizer.app/Contents/MacOS/HybridStereoAutonomousVehicleSystemVisualizer")
+        self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         # Link left and right vision objects
@@ -101,7 +106,7 @@ class VisionSystem:
 
         return poseObjects
 
-    def start(self):
+    async def start(self):
         # Performance statistics
         frames = 0
         startTimeSecs = time.perf_counter()
@@ -155,7 +160,8 @@ class VisionSystem:
             rObjects = VisionObject.fromResults(rResults[0])
 
             objects = self.toPoseObjects(lObjects, rObjects)
-            print(objects)
+            # Update visualizer
+            await self.visualizer.update(objects)
 
             for obj in objects:
                 print(f"POSE OBJECT ({obj.objectType}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
