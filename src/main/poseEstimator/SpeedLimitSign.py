@@ -1,9 +1,9 @@
 from poseEstimator.PoseObject import PoseObject
-from VisionObject import VisionObjectType
+from ObjectType import ObjectType
 
 
 # Speed limit sign
 class SpeedLimitSign(PoseObject):
     def __init__(self, x: float, y: float, z: float, speed: int):
-        super().__init__(x, y, z, VisionObjectType.Regulatory)
+        super().__init__(x, y, z, ObjectType.Regulatory)
         self.speed = speed

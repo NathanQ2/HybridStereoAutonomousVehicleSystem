@@ -15,7 +15,7 @@ from poseEstimator.PoseObject import PoseObject
 from poseEstimator.StopSign import StopSign
 from poseEstimator.SpeedLimitSign import SpeedLimitSign
 from poseEstimator.WarningSign import WarningSign
-from VisionObject import VisionObject, VisionObjectType
+from VisionObject import VisionObject, ObjectType
 from src.main.VisualizerManager import VisualizerManager
 from util.Util import Util
 
@@ -96,11 +96,11 @@ class VisionSystem:
             x, y, z = self.poseEstimator.estimate(lObject, rObject)
 
             match rObject.objectType:
-                case VisionObjectType.StopSign:
+                case ObjectType.StopSign:
                     poseObjects.append(StopSign(x, y, z))
-                case VisionObjectType.Regulatory:
+                case ObjectType.Regulatory:
                     poseObjects.append(SpeedLimitSign(x, y, z, 55))
-                case VisionObjectType.Warning:
+                case ObjectType.Warning:
                     poseObjects.append(WarningSign(x, y, z))
                 # TODO: Add more signs
 
@@ -164,7 +164,7 @@ class VisionSystem:
             await self.visualizer.update(objects)
 
             for obj in objects:
-                print(f"POSE OBJECT ({obj.objectType}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
+                print(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
 
             cv.imshow("Processed Right Frame", processedRFrame)
             cv.imshow("Processed Left Frame", processedLFrame)

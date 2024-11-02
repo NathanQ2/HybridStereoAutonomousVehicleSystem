@@ -3,6 +3,7 @@ import subprocess
 import asyncio
 
 from poseEstimator.PoseObject import PoseObject
+from Serializer import Serializer
 
 
 class VisualizerManager:
@@ -10,6 +11,7 @@ class VisualizerManager:
         print("-- INFO -- Starting Visualizer...")
         self.IP = "127.0.0.1"
         self.PORT = 5006
+        self.p = None
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.IP, self.PORT))
@@ -20,8 +22,6 @@ class VisualizerManager:
                 stdout=subprocess.PIPE,
                 text=True
             )
-        else:
-            self.p = None
 
         self.sock.listen(1)
         print("-- INFO -- Waiting for connection...")
@@ -36,21 +36,26 @@ class VisualizerManager:
         self.sock.close()
 
     async def update(self, poseObjects: list[PoseObject]):
+        # TODO: update this
         # Serialization spec:
-        # 4 bytes - number of pose objects
+        # 4 bytes - size of rest of message in bytes
         # pose objects
 
         # Create new byte array
         buff = bytearray()
 
         # Write length to byte array
-        serializedLen = int.to_bytes(len(poseObjects), 4, "little", signed=False)
-        buff += serializedLen
+        size = Serializer.getSizePoseObjects(poseObjects)
+        print(f"SizeBytes: {size}")
+        sizeBytes = int.to_bytes(size, 4, "little", signed=False)
+        buff += sizeBytes
+
+        # if (len(poseObjects) != 0):
+        #     buff += Serializer.serialize(poseObjects[0])
+
+        for obj in poseObjects:
+            buff += Serializer.serialize(obj)
 
         # Send bytes to client
         self.conn.send(buff)
         print(f"Sent: {buff.hex()}")
-
-    @staticmethod
-    def serialize(self, poseObject: PoseObject) -> bytes:
-        pass
