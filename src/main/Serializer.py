@@ -37,7 +37,19 @@ class Serializer:
 
     @staticmethod
     def serializeRegulatorySign(speedLimit: SpeedLimitSign) -> bytearray:
-        return bytearray()
+        buff = bytearray()
+
+        buff += int.to_bytes(ObjectType.Regulatory, 4, "little", signed=True)
+
+        buff += struct.pack("f", speedLimit.x)
+        buff += struct.pack("f", speedLimit.y)
+        buff += struct.pack("f", speedLimit.z)
+
+        buff += int.to_bytes(speedLimit.speed, 4, "little", signed=False)
+
+        print(f"ObjSize: {len(buff)}")
+
+        return buff
 
     @staticmethod
     def serializeWarningSign(warningSign: WarningSign) -> bytearray:
