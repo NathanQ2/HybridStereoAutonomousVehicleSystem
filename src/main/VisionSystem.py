@@ -152,8 +152,8 @@ class VisionSystem:
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
-            processedRFrame = rResults[0].plot()
-            processedLFrame = lResults[0].plot()
+            processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
+            processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
 
             # Generate vision objects from model results
             lObjects = VisionObject.fromResults(lResults[0])

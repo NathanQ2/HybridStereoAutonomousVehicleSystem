@@ -31,8 +31,6 @@ class Serializer:
         buff += struct.pack("f", stopSign.y)
         buff += struct.pack("f", stopSign.z)
 
-        print(f"ObjSize: {len(buff)}")
-
         return buff
 
     @staticmethod
@@ -47,13 +45,19 @@ class Serializer:
 
         buff += int.to_bytes(speedLimit.speed, 4, "little", signed=False)
 
-        print(f"ObjSize: {len(buff)}")
-
         return buff
 
     @staticmethod
     def serializeWarningSign(warningSign: WarningSign) -> bytearray:
-        return bytearray()
+        buff = bytearray()
+
+        buff += int.to_bytes(ObjectType.Warning, 4, "little", signed=True)
+
+        buff += struct.pack("f", warningSign.x)
+        buff += struct.pack("f", warningSign.y)
+        buff += struct.pack("f", warningSign.z)
+
+        return buff
 
     @staticmethod
     def serialize(poseObject: PoseObject) -> bytearray:
