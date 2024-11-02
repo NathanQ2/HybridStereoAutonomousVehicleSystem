@@ -20,6 +20,9 @@ class CameraProperties:
         self.calibrationMatrix = calibrationMatrix
         self.distortionCoefficients = distortionCoefficients
 
+    def getAspectRatio(self) -> float:
+        return self.widthNative / self.heightNative
+
     # For json serialization
     def asJson(self):
         d = {

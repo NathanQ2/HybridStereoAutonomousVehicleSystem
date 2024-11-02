@@ -30,31 +30,38 @@ class PoseEstimator:
 
         disparity = abs(ul - ur)
 
-        rVertFOV = self.rCameraProps.hfov * (480 / 640)
+        rNormalizedCoords = (
+            (ur - self.rCameraProps.calibrationMatrix[0][2]) / self.rCameraProps.calibrationMatrix[0][0],
+            (vr - self.rCameraProps.calibrationMatrix[1][2]) / self.rCameraProps.calibrationMatrix[1][1]
+        )
 
-        # Frame is undistorted, so this should be accurate enough??
-        rVertAngle = -((vr - (480 / 2)) / 480 * rVertFOV)
-        rHorizAngle = (ur - (640 / 2)) / 640 * self.rCameraProps.hfov
-        lHorizAngle = (ul - (640 / 2)) / 640 * self.lCameraProps.hfov
-        # print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}")
+        lNormalizedCoords = (
+            (ul - self.lCameraProps.calibrationMatrix[0][2]) / self.lCameraProps.calibrationMatrix[0][0],
+            (vl - self.lCameraProps.calibrationMatrix[1][2]) / self.lCameraProps.calibrationMatrix[1][1]
+        )
 
-        if (-10 < rVertAngle < 10 and -15.5 < rHorizAngle < 13):
+        rVertAngle = math.degrees(math.atan(-rNormalizedCoords[1]))
+        rHorizAngle = math.degrees(math.atan(rNormalizedCoords[0]))
+        lHorizAngle = math.degrees(math.atan(lNormalizedCoords[0]))
+        avgHorizAngle = (rHorizAngle + lHorizAngle) / 2
+        print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
+
+        if (-10 < rVertAngle < 10 and -19.2 < avgHorizAngle < 19.2):
             shouldUseLiDAR = True
 
-        # print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
+        print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
 
+        # STEREO FORMULAS
         # x = (b(ul - ox)) / disparity
         # y = (b*fx(vl - oy)) / (fy*disparity)
         # z = b*fx / disparity
 
         # Override disparity if we want to use lidar
         if (shouldUseLiDAR):
-            # Rough estimate abt where sign should be
-            desiredAngle = (rHorizAngle + lHorizAngle) / 2
             # z = b*fx / disparity
             # disparity = b*fx / z
             measurement = self.liDARManager.getLatest()
-            z = measurement.getDistAtAngle(desiredAngle)
+            z = measurement.getDistAtAngle(avgHorizAngle)
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
         else:
             z = (self.baseline * self.lCameraProps.calibrationMatrix[0][0]) / disparity

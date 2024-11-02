@@ -76,12 +76,12 @@ class VisionSystem:
                 # print(f"Box Area: {boxAreaAvg}")
 
                 # If the position of the two objects are not similar these two objects are probably not the same
-                if (not Util.isSimilar(rObject.x, lObject.x, POSITION_TOLERANCE * boxAreaAvg)):
-                    print("x pos out of tolerance")
-                    continue
-                if (not Util.isSimilar(rObject.y, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
-                    print("y pos out of tolerance")
-                    continue
+                # if (not Util.isSimilar(rObject.x, lObject.x, POSITION_TOLERANCE * boxAreaAvg)):
+                #     print("x pos out of tolerance")
+                #     continue
+                # if (not Util.isSimilar(rObject.y, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
+                #     print("y pos out of tolerance")
+                #     continue
 
                 # These two objects are probably the same
                 linkedObjects[i] = (lObject, rObject)
@@ -138,12 +138,16 @@ class VisionSystem:
                 rFrame,
                 self.rightCamProps.calibrationMatrix,
                 self.rightCamProps.distortionCoefficients,
+                # None,
+                # rNewMatrix
             )
 
             lFrame = cv.undistort(
                 lFrame,
                 self.leftCamProps.calibrationMatrix,
                 self.leftCamProps.distortionCoefficients,
+                # None,
+                # lNewMatrix
             )
 
             MIN_CONFIDENCE = 0.70
@@ -152,8 +156,10 @@ class VisionSystem:
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
-            processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
-            processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
+            processedRFrame = rResults[0].plot()
+            processedLFrame = lResults[0].plot()
+            # processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
+            # processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
 
             # Generate vision objects from model results
             lObjects = VisionObject.fromResults(lResults[0])
