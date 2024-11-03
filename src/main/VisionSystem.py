@@ -97,7 +97,6 @@ class VisionSystem:
         return poseObjects
 
     async def start(self):
-        await self.poseEstimator.start()
         # Performance statistics
         frames = 0
         startTimeSecs = time.perf_counter()

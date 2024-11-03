@@ -26,10 +26,6 @@ class PoseEstimator:
         if (self.lidarTask is not None):
             self.lidarTask.cancel()
 
-    async def start(self):
-        self.lidarTask = asyncio.create_task(self.liDARManager.start())
-        print("started successfully!")
-
     def getPoseFromObject(self, lObject: VisionObject, rObject: VisionObject):
         shouldUseLiDAR = False
         # print(f"LiDAR Timestamp: {measurement.timestamp}")
@@ -57,7 +53,7 @@ class PoseEstimator:
         avgHorizAngle = (rHorizAngle + lHorizAngle) / 2
         # print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
 
-        if (-10 < rVertAngle < 10 and -19.2 < avgHorizAngle < 19.2):
+        if (-10 < rVertAngle < 10 and -9.5 < avgHorizAngle < 19.2):
             shouldUseLiDAR = True
 
         # STEREO FORMULAS
@@ -67,6 +63,7 @@ class PoseEstimator:
 
         measurement = self.liDARManager.getLatest()
         if (measurement is None):
+            print("Lidar latest measurement is 'None'!")
             shouldUseLiDAR = False
 
         print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
