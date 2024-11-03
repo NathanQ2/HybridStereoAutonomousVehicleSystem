@@ -12,12 +12,12 @@ from src.main.VisionObject import VisionObject
 
 
 class PoseEstimator:
-    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, frameSize: tuple[float], lidarDevice: str):
+    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
-        self.frameSize = frameSize
         self.liDARManager = LiDARManager(lidarDevice)
+        self.previousTimestamp = 0.0
         print(f"Baseline: {self.baseline}")
 
     def getPoseFromObject(self, lObject: VisionObject, rObject: VisionObject):
@@ -50,7 +50,6 @@ class PoseEstimator:
         if (-10 < rVertAngle < 10 and -19.2 < avgHorizAngle < 19.2):
             shouldUseLiDAR = True
 
-        print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
 
         # STEREO FORMULAS
         # x = (b(ul - ox)) / disparity
@@ -58,15 +57,25 @@ class PoseEstimator:
         # z = b*fx / disparity
 
         # Override disparity if we want to use lidar
+        measurement = self.liDARManager.getLatest()
+        # z = b*fx / disparity
+        # disparity = b*fx / z
+        lidarZ = measurement.getDistAtAngle(avgHorizAngle)
+        print(f"Lidar Z: {Util.metersToInches(lidarZ)}")
+        # Since lidar is pretty buggy, if we get a measurement from (0, 2.54), assume the data is trash
+        if (lidarZ == 0 or lidarZ >= 2.54):
+            shouldUseLiDAR = False
+
+        print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
         if (shouldUseLiDAR):
-            # z = b*fx / disparity
-            # disparity = b*fx / z
-            measurement = self.liDARManager.getLatest()
-            z = measurement.getDistAtAngle(avgHorizAngle)
+            # Use lidar for depth measurement
+            z = lidarZ
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
         else:
+            # Fall back on stereo cameras
             z = (self.baseline * self.lCameraProps.calibrationMatrix[0][0]) / disparity
 
+        # Calculate x, y, and z
         x = (self.baseline * (ul - self.lCameraProps.calibrationMatrix[0][2])) / disparity
         y = -(self.baseline * self.lCameraProps.calibrationMatrix[0][0] * (
                 vl - self.lCameraProps.calibrationMatrix[1][2])) / (

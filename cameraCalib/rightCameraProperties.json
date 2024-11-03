@@ -1,6 +1,6 @@
 {
     "name": "rightCam",
-    "port": 0,
+    "port": 1,
     "widthNative": 1280,
     "heightNative": 720,
     "hfov": 48.80887495,

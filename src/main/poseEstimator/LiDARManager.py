@@ -70,12 +70,13 @@ class LiDARManager:
 
         # time.sleep(3)
 
-        # print("-- INFO -- Starting RP_LiDAR_Interface, if the application hangs for an unreasonable amount of time")
         output = self.p.stdout.read(1)
+        print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT:")
         while (output.find("Scanning") == -1):
-            print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT: {output}", end='\r')
             if (self.p.poll() is None):  # Program still running
                 output += self.p.stdout.read(1)
+
+                print(output, end='\r')
             else:
                 print(f"-- ERROR -- RP_LiDAR_Interface has crashed with exit code {self.p.returncode} during startup!")
                 exit(1)
@@ -84,6 +85,8 @@ class LiDARManager:
 
     def __del__(self):
         self.p.terminate()
+        self.conn.close()
+        self.sock.close()
 
     def getLatest(self) -> LiDARMeasurement:
         timestampBytes = self.conn.recv(8)

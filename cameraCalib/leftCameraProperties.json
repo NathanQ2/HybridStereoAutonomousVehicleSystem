@@ -1,6 +1,6 @@
 {
     "name": "leftCam",
-    "port": 1,
+    "port": 0,
     "widthNative": 1920,
     "heightNative": 1080,
     "hfov": 90,

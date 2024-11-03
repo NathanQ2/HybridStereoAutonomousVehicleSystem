@@ -107,37 +107,31 @@ class VisionSystem:
             rRet, rFrame = self.rightCam.read()
             lRet, lFrame = self.leftCam.read()
 
-            # Image dimensions to use instead of native camera resolution
-            FRAME_SIZE = (640, 480)
-
-            rFrame = cv.resize(rFrame, FRAME_SIZE)
-            lFrame = cv.resize(lFrame, FRAME_SIZE)
-
             # Get new camera matrix scaled for correct aspect ratio
-            rNewMatrix, rRoi = cv.getOptimalNewCameraMatrix(
-                self.rightCamProps.calibrationMatrix,
-                self.rightCamProps.distortionCoefficients.reshape(-1, 1),
-                (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
-                1,
-                FRAME_SIZE,
-                True
-            )
-
-            lNewMatrix, lRoi = cv.getOptimalNewCameraMatrix(
-                self.leftCamProps.calibrationMatrix,
-                self.leftCamProps.distortionCoefficients.reshape(-1, 1),
-                (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
-                1,
-                FRAME_SIZE,
-                True
-            )
+            # rNewMatrix, rRoi = cv.getOptimalNewCameraMatrix(
+            #     self.rightCamProps.calibrationMatrix,
+            #     self.rightCamProps.distortionCoefficients.reshape(-1, 1),
+            #     (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
+            #     1,
+            #     (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
+            #     True
+            # )
+            #
+            # lNewMatrix, lRoi = cv.getOptimalNewCameraMatrix(
+            #     self.leftCamProps.calibrationMatrix,
+            #     self.leftCamProps.distortionCoefficients.reshape(-1, 1),
+            #     (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
+            #     1,
+            #     (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
+            #     True
+            # )
 
             rFrame = cv.undistort(
                 rFrame,
                 self.rightCamProps.calibrationMatrix,
                 self.rightCamProps.distortionCoefficients,
                 None,
-                rNewMatrix
+                # rNewMatrix
             )
 
             lFrame = cv.undistort(
@@ -145,19 +139,19 @@ class VisionSystem:
                 self.leftCamProps.calibrationMatrix,
                 self.leftCamProps.distortionCoefficients,
                 None,
-                lNewMatrix
+                # lNewMatrix
             )
 
-            MIN_CONFIDENCE = 0.55
+            MIN_CONFIDENCE = 0.35
 
             rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
-            processedRFrame = rResults[0].plot()
-            processedLFrame = lResults[0].plot()
-            # processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
-            # processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
+            # processedRFrame = rResults[0].plot()
+            # processedLFrame = lResults[0].plot()
+            processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
+            processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
 
             # Generate vision objects from model results
             lObjects = VisionObject.fromResults(lResults[0])
