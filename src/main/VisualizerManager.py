@@ -46,7 +46,7 @@ class VisualizerManager:
 
         # Write length to byte array
         size = Serializer.getSizePoseObjects(poseObjects)
-        print(f"SizeBytes: {size}")
+        # print(f"SizeBytes: {size}")
         sizeBytes = int.to_bytes(size, 4, "little", signed=False)
         buff += sizeBytes
 
@@ -58,4 +58,4 @@ class VisualizerManager:
 
         # Send bytes to client
         self.conn.send(buff)
-        print(f"Sent: {buff.hex()}")
+        # print(f"Sent: {buff.hex()}")

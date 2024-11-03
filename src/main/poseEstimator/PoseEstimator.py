@@ -12,10 +12,11 @@ from src.main.VisionObject import VisionObject
 
 
 class PoseEstimator:
-    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
+    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, frameSize: tuple[float], lidarDevice: str):
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
+        self.frameSize = frameSize
         self.liDARManager = LiDARManager(lidarDevice)
         print(f"Baseline: {self.baseline}")
 
@@ -44,7 +45,7 @@ class PoseEstimator:
         rHorizAngle = math.degrees(math.atan(rNormalizedCoords[0]))
         lHorizAngle = math.degrees(math.atan(lNormalizedCoords[0]))
         avgHorizAngle = (rHorizAngle + lHorizAngle) / 2
-        print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
+        # print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
 
         if (-10 < rVertAngle < 10 and -19.2 < avgHorizAngle < 19.2):
             shouldUseLiDAR = True

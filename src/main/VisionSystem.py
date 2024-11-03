@@ -16,7 +16,7 @@ from poseEstimator.StopSign import StopSign
 from poseEstimator.SpeedLimitSign import SpeedLimitSign
 from poseEstimator.WarningSign import WarningSign
 from VisionObject import VisionObject, ObjectType
-from src.main.VisualizerManager import VisualizerManager
+from VisualizerManager import VisualizerManager
 from util.Util import Util
 
 
@@ -41,15 +41,6 @@ class VisionSystem:
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         # Link left and right vision objects
         linkedObjects: dict[int, tuple[VisionObject, VisionObject]] = {}
-
-        # TODO: Tune these
-        # Tolerance for box dimensions (in pixels)
-        DIMENSION_TOLERANCE = 200
-        # Tolerance for position
-        # (multiplied by box area b/c we want this to scale based off distance away from camera system)
-        POSITION_TOLERANCE = 1000 / 128935
-
-        # print(len(lObjects))
 
         for i in range(len(lObjects)):
             lObject = lObjects[i]
@@ -102,7 +93,6 @@ class VisionSystem:
                     poseObjects.append(SpeedLimitSign(x, y, z, 55))
                 case ObjectType.Warning:
                     poseObjects.append(WarningSign(x, y, z))
-                # TODO: Add more signs
 
         return poseObjects
 
@@ -117,13 +107,20 @@ class VisionSystem:
             rRet, rFrame = self.rightCam.read()
             lRet, lFrame = self.leftCam.read()
 
+            # Image dimensions to use instead of native camera resolution
+            FRAME_SIZE = (640, 480)
+
+            rFrame = cv.resize(rFrame, FRAME_SIZE)
+            lFrame = cv.resize(lFrame, FRAME_SIZE)
+
             # Get new camera matrix scaled for correct aspect ratio
             rNewMatrix, rRoi = cv.getOptimalNewCameraMatrix(
                 self.rightCamProps.calibrationMatrix,
                 self.rightCamProps.distortionCoefficients.reshape(-1, 1),
                 (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
                 1,
-                (self.rightCamProps.widthNative, self.rightCamProps.heightNative)
+                FRAME_SIZE,
+                True
             )
 
             lNewMatrix, lRoi = cv.getOptimalNewCameraMatrix(
@@ -131,26 +128,27 @@ class VisionSystem:
                 self.leftCamProps.distortionCoefficients.reshape(-1, 1),
                 (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
                 1,
-                (self.leftCamProps.widthNative, self.leftCamProps.heightNative)
+                FRAME_SIZE,
+                True
             )
 
             rFrame = cv.undistort(
                 rFrame,
                 self.rightCamProps.calibrationMatrix,
                 self.rightCamProps.distortionCoefficients,
-                # None,
-                # rNewMatrix
+                None,
+                rNewMatrix
             )
 
             lFrame = cv.undistort(
                 lFrame,
                 self.leftCamProps.calibrationMatrix,
                 self.leftCamProps.distortionCoefficients,
-                # None,
-                # lNewMatrix
+                None,
+                lNewMatrix
             )
 
-            MIN_CONFIDENCE = 0.70
+            MIN_CONFIDENCE = 0.55
 
             rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
