@@ -36,7 +36,7 @@ class VisionSystem:
         self.model = YOLO(modelPath)
 
         # self.visualizer = VisualizerManager("/Users/nathanquartaro/DevLocal/GodotProjects/hybridstereoautonomousvehiclesystemvisualizer/builds/mac/HybridStereoAutonomousVehicleSystemVisualizer.app/Contents/MacOS/HybridStereoAutonomousVehicleSystemVisualizer")
-        self.visualizer = VisualizerManager(None)
+        # self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         # Link left and right vision objects
@@ -97,6 +97,7 @@ class VisionSystem:
         return poseObjects
 
     async def start(self):
+        await self.poseEstimator.start()
         # Performance statistics
         frames = 0
         startTimeSecs = time.perf_counter()
@@ -159,7 +160,7 @@ class VisionSystem:
 
             objects = self.toPoseObjects(lObjects, rObjects)
             # Update visualizer
-            await self.visualizer.update(objects)
+            # await self.visualizer.update(objects)
 
             for obj in objects:
                 print(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")

@@ -2,6 +2,7 @@ import cv2 as cv
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 import math
+import asyncio
 
 from poseEstimator.CameraProperties import CameraProperties
 from poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
@@ -17,8 +18,17 @@ class PoseEstimator:
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
         self.liDARManager = LiDARManager(lidarDevice)
+        self.lidarTask = None
         self.previousTimestamp = 0.0
         print(f"Baseline: {self.baseline}")
+
+    def __del__(self):
+        if (self.lidarTask is not None):
+            self.lidarTask.cancel()
+
+    async def start(self):
+        self.lidarTask = asyncio.create_task(self.liDARManager.start())
+        print("started successfully!")
 
     def getPoseFromObject(self, lObject: VisionObject, rObject: VisionObject):
         shouldUseLiDAR = False
@@ -50,24 +60,21 @@ class PoseEstimator:
         if (-10 < rVertAngle < 10 and -19.2 < avgHorizAngle < 19.2):
             shouldUseLiDAR = True
 
-
         # STEREO FORMULAS
         # x = (b(ul - ox)) / disparity
         # y = (b*fx(vl - oy)) / (fy*disparity)
         # z = b*fx / disparity
 
-        # Override disparity if we want to use lidar
         measurement = self.liDARManager.getLatest()
-        # z = b*fx / disparity
-        # disparity = b*fx / z
-        lidarZ = measurement.getDistAtAngle(avgHorizAngle)
-        print(f"Lidar Z: {Util.metersToInches(lidarZ)}")
-        # Since lidar is pretty buggy, if we get a measurement from (0, 2.54), assume the data is trash
-        if (lidarZ == 0 or lidarZ >= 2.54):
+        if (measurement is None):
             shouldUseLiDAR = False
 
         print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
         if (shouldUseLiDAR):
+            # z = b*fx / disparity
+            # disparity = b*fx / z
+            lidarZ = measurement.getDistAtAngle(avgHorizAngle)
+            print(f"Lidar Z: {Util.metersToInches(lidarZ)}")
             # Use lidar for depth measurement
             z = lidarZ
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z

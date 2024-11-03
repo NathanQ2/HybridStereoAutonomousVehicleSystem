@@ -7,6 +7,8 @@ import platform
 import subprocess
 import time
 import socket
+import asyncio
+import threading
 
 from util.Util import Util
 
@@ -82,40 +84,49 @@ class LiDARManager:
                 exit(1)
 
         print(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
+        self.latestMeasurement = None
 
     def __del__(self):
         self.p.terminate()
         self.conn.close()
         self.sock.close()
 
-    def getLatest(self) -> LiDARMeasurement:
-        timestampBytes = self.conn.recv(8)
-        timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
-        # print(f"TimestampBytes: {timestampBytes.hex()} TimestampInt: {timestampInt}")
+    def getLatest(self) -> LiDARMeasurement | None:
+        return self.latestMeasurement
 
-        nodes = []
-        nodeSizeBytes = 2 + 4 + 1 + 1
-        for i in range(291):
-            angleBytes = self.conn.recv(2)
-            angleInt = int.from_bytes(angleBytes, 'little', signed=False)
-            # print(f"AngleBytes: {angleBytes.hex()}")
-            # print(f"AngleInt: {angleInt}\n")
+    async def start(self):
+        print("hello!")
+        while(True):
+            timestampBytes = await self.conn.recv(8)
+            timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
+            print(f"TimestampBytes: {timestampBytes.hex()} TimestampInt: {timestampInt}")
 
-            distBytes = self.conn.recv(4)
-            distInt = int.from_bytes(distBytes, 'little', signed=False)
-            # print(f"DistBytes: {distBytes.hex()}")
-            # print(f"DistInt: {distInt}\n")
+            nodes = []
+            nodeSizeBytes = 2 + 4 + 1 + 1
+            for i in range(291):
+                angleBytes = await self.conn.recv(2)
+                distBytes = await self.conn.recv(4)
+                qualityBytes = await self.conn.recv(1)
+                flagBytes = await self.conn.recv(1)
 
-            qualityBytes = self.conn.recv(1)
-            qualityInt = int.from_bytes(qualityBytes, 'little', signed=False)
-            # print(f"QualityBytes: {qualityBytes.hex()}")
-            # print(f"QualityInt: {qualityInt}\n")
+                angleInt = int.from_bytes(angleBytes, 'little', signed=False)
+                # print(f"AngleBytes: {angleBytes.hex()}")
+                # print(f"AngleInt: {angleInt}\n")
 
-            flagBytes = self.conn.recv(1)
-            flagInt = int.from_bytes(flagBytes, 'little', signed=False)
-            # print(f"FlagBytes: {flagBytes.hex()}")
-            # print(f"FlagInt: {flagInt}\n\n")
+                distInt = int.from_bytes(distBytes, 'little', signed=False)
+                # print(f"DistBytes: {distBytes.hex()}")
+                # print(f"DistInt: {distInt}\n")
 
-            nodes.append(Node(angleInt, distInt, qualityInt, flagInt))
+                qualityInt = int.from_bytes(qualityBytes, 'little', signed=False)
+                # print(f"QualityBytes: {qualityBytes.hex()}")
+                # print(f"QualityInt: {qualityInt}\n")
 
-        return LiDARMeasurement(timestampInt, nodes)
+                flagInt = int.from_bytes(flagBytes, 'little', signed=False)
+                # print(f"FlagBytes: {flagBytes.hex()}")
+                # print(f"FlagInt: {flagInt}\n\n")
+
+                nodes.append(Node(angleInt, distInt, qualityInt, flagInt))
+
+            self.latestMeasurement = LiDARMeasurement(timestampInt, nodes)
+
+            await asyncio.sleep(0.01)
