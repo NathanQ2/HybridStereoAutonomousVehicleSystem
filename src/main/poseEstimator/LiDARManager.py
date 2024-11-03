@@ -14,6 +14,8 @@ from util.Util import Util
 
 
 class Node:
+    """A Node is one 'pixel' from the LiDAR's measurement. It has an angle and a distance, among other things."""
+
     def __init__(self, angle_z_q14, dist_mm_q2, quality, flag):
         self.angle_z_q14 = angle_z_q14
         self.dist_mm_q2 = dist_mm_q2
@@ -22,11 +24,15 @@ class Node:
 
 
 class LiDARMeasurement:
+    """A collection of Nodes to form a 360 degree measurement"""
+
     def __init__(self, timestamp, nodes):
         self.timestamp = timestamp
         self.nodes = nodes
 
     def getDistAtAngle(self, angleDeg) -> float:
+        """Returns the distance at a specified angle"""
+
         native = LiDARMeasurement.degToNative(angleDeg)
         closestNode = self.nodes[0]
         for node in self.nodes:
@@ -35,9 +41,10 @@ class LiDARMeasurement:
 
         return Util.millimetersToMeters(closestNode.dist_mm_q2) / 4
 
-    # Returns the native rotation units of the lidar
     @staticmethod
     def degToNative(degrees: float) -> int:
+        """Returns the natiev rotation units of the lidar"""
+
         # deg = node.angle_z_q14 * 90 / (1 << 14)
         # deg = node.angle_z_q14 * 90 / 2^14
         # deg = node.angle_z_q14 * (90 / 2^14)
@@ -46,6 +53,8 @@ class LiDARMeasurement:
 
 
 class LiDARThread(threading.Thread):
+    """Thread that reads data from RP_LiDAR_Interface. Should only be instantiated by LiDARManager"""
+
     def __init__(self, ip: str, port: int):
         super().__init__()
         # Setup socket
@@ -66,12 +75,14 @@ class LiDARThread(threading.Thread):
     def run(self):
         self.running = True
         while(self.running):
+            # Receive data from lidar over socket
             timestampBytes = self.conn.recv(8)
             timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
             # print(f"TimestampBytes: {timestampBytes.hex()} TimestampInt: {timestampInt}")
 
             nodes = []
             nodeSizeBytes = 2 + 4 + 1 + 1
+            # For every node in measurement
             for i in range(291):
                 angleBytes = self.conn.recv(2)
                 distBytes = self.conn.recv(4)
@@ -96,34 +107,41 @@ class LiDARThread(threading.Thread):
 
                 nodes.append(Node(angleInt, distInt, qualityInt, flagInt))
 
+            # Update latest measurement
             with self.lock:
                 self.latestMeasurement = LiDARMeasurement(timestampInt, nodes)
 
     def stop(self):
+        # Cleanup
         self.running = False
         self.conn.close()
         self.sock.close()
 
 
 class LiDARManager:
+    """Manages an external lidar and its thread."""
     def __init__(self, lidarDevice: str):
         print(f"-- INFO -- Starting LiDAR Interface...")
         print(f"-- INFO -- LiDAR Device: {lidarDevice}")
 
+        # TODO: Make this work better ( -> config file?)
+        # Path to lidar interface
         interfacePath = f"{os.path.dirname(os.path.realpath(__file__))}/../../../vendor/RP_LiDAR_Interface_Cpp/build/RP_LiDAR_Interface_Cpp"
 
         self.IP = "127.0.0.1"
         self.PORT = 5005
 
-        # Make interface path sys.argv
+        # Start process
         self.p = subprocess.Popen(
             [interfacePath, lidarDevice, self.IP, str(self.PORT)],
             stdout=subprocess.PIPE,
             text=True
         )
 
+        # Create lidar thread
         self.lidarThread = LiDARThread(self.IP, self.PORT)
 
+        # Check that RP_Lidar_Interface has not exited with an error and print its output to conosole
         output = self.p.stdout.read(1)
         print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT:")
         while (output.find("Scanning") == -1):
@@ -144,9 +162,9 @@ class LiDARManager:
         self.sock.close()
 
     def getLatest(self) -> LiDARMeasurement | None:
+        """Returns the latest measurement from the lidar device."""
         with self.lidarThread.lock:
             return self.lidarThread.latestMeasurement
 
     def start(self):
-        print("hello!")
         self.lidarThread.start()

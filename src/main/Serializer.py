@@ -7,6 +7,7 @@ from ObjectType import ObjectType
 import struct
 
 
+# TODO: I'm pretty sure we can define inside Serializer, we just have to use self.
 # We can't define these inside Serializer because the serializer class needs these
 # and python won't define these before they are referenced in code :(
 class SerializerConstants:
@@ -17,12 +18,14 @@ class SerializerConstants:
 
 
 class Serializer:
+    """Responsible for serializing objects (usually PoseObjects) into binary"""
 
     def __init__(self):
         raise Exception("This is a utility class!")
 
     @staticmethod
     def serializeStopSign(stopSign: StopSign) -> bytearray:
+        """Serializes a stop sign. Returns a bytearray that can be sent over the network."""
         buff = bytearray()
 
         buff += int.to_bytes(ObjectType.StopSign, 4, "little", signed=True)
@@ -35,6 +38,7 @@ class Serializer:
 
     @staticmethod
     def serializeRegulatorySign(speedLimit: SpeedLimitSign) -> bytearray:
+        """Serializes a speed limit sign. Returns a bytearray that can be sent over the network."""
         buff = bytearray()
 
         buff += int.to_bytes(ObjectType.Regulatory, 4, "little", signed=True)
@@ -49,6 +53,7 @@ class Serializer:
 
     @staticmethod
     def serializeWarningSign(warningSign: WarningSign) -> bytearray:
+        """Serializes a warning sign. Returns a bytearray that can be sent over the network."""
         buff = bytearray()
 
         buff += int.to_bytes(ObjectType.Warning, 4, "little", signed=True)
@@ -61,6 +66,7 @@ class Serializer:
 
     @staticmethod
     def serialize(poseObject: PoseObject) -> bytearray:
+        """Serializes a PoseObject"""
         match poseObject.type:
             case ObjectType.StopSign:
                 return Serializer.serializeStopSign(poseObject)
@@ -71,6 +77,7 @@ class Serializer:
 
     @staticmethod
     def getSizePoseObject(poseObject: PoseObject) -> int:
+        """Returns the size (in bytes) of a PoseObject. PoseObject's are not fixed size because some child classes have more fields than others."""
         match poseObject.type:
             case ObjectType.StopSign:
                 return SerializerConstants.POSE_OBJECT_SIZE_BYTES
@@ -81,6 +88,8 @@ class Serializer:
 
     @staticmethod
     def getSizePoseObjects(poseObjects: list[PoseObject]) -> int:
+        """Returns the size of a list of PoseObjects (in bytes)"""
+
         size = 0
         for poseObject in poseObjects:
             size += Serializer.getSizePoseObject(poseObject)

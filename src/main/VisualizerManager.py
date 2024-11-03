@@ -7,6 +7,8 @@ from Serializer import Serializer
 
 
 class VisualizerManager:
+    """Manages the visualizer gui"""
+
     def __init__(self, visualizerPath: str | None):
         print("-- INFO -- Starting Visualizer...")
         self.IP = "127.0.0.1"
@@ -36,6 +38,8 @@ class VisualizerManager:
         self.sock.close()
 
     async def update(self, poseObjects: list[PoseObject]):
+        """Publish new data to the visualizer"""
+
         # TODO: update this
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes

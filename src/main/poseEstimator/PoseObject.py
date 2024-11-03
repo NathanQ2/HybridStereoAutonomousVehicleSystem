@@ -3,8 +3,8 @@ from ObjectType import ObjectType
 import struct
 
 
-# Represents object that has had its pose estimated
 class PoseObject:
+    """Represents an object in 3d space"""
     def __init__(self, x: float, y: float, z: float, objectType: ObjectType):
         self.x = x
         self.y = y

@@ -1,8 +1,9 @@
 from enum import IntEnum
 
 
-# Type of object recognized by vision
 class ObjectType(IntEnum):
+    """Type of object recognized by vision system"""
+
     StopSign = 0
     Warning = 1
     Regulatory = 2

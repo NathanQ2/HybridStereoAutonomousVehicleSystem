@@ -4,8 +4,8 @@ from ultralytics.engine.results import Results
 from ObjectType import ObjectType
 
 
-# Represents an object detected by a singular camera
 class VisionObject:
+    """Represents an object detected by a singular camera in 2d space"""
     def __init__(self, x: float, y: float, w: float, h: float, objectType: ObjectType, conf: float):
         self.x = x
         self.y = y
@@ -16,6 +16,8 @@ class VisionObject:
 
     @staticmethod
     def fromResults(results: Results):
+        """Returns a VisionObject based of an Ultralytics Results object"""
+
         objects = []
 
         for box in results.boxes:

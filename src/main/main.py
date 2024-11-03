@@ -14,7 +14,8 @@ from util.Util import Util
 from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
-# TODO: make logging stuff
+# TODO: Make logging stuff
+
 
 async def main():
     if (len(sys.argv) != 3):
@@ -22,7 +23,7 @@ async def main():
 
         return 1
 
-    # Load camera properties json file
+    # Load camera properties json files
     rightCamPropsJson = None
     leftCamPropsJson = None
     with open(f"{os.getcwd()}/cameraCalib/rightCameraProperties.json", "r") as f:
@@ -34,8 +35,10 @@ async def main():
     rightCamProps = CameraProperties.fromJson(json.loads(rightCamPropsJson))
     leftCamProps = CameraProperties.fromJson(json.loads(leftCamPropsJson))
 
+    # Initialize vision system
     vision = VisionSystem(leftCamProps, rightCamProps, sys.argv[1], sys.argv[2])
 
+    # Start vision system
     await vision.start()
 
 

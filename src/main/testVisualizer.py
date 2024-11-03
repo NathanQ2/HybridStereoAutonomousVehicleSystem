@@ -1,3 +1,6 @@
+# Purely for debug purposes, not in test directory because of relative imports used in all the main/ files
+# I shouldn't have done that :(
+
 import socket
 import asyncio
 

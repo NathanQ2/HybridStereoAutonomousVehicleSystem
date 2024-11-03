@@ -21,58 +21,38 @@ from util.Util import Util
 
 
 class VisionSystem:
+    """Represents the entire camera / lidar system"""
+
     def __init__(self, leftCamProps: CameraProperties, rightCampProps: CameraProperties, lidarDevice: str,
                  modelPath: os.path):
         self.leftCamProps = leftCamProps
         self.rightCamProps = rightCampProps
 
-        # init cameras
+        # Init cameras
         self.rightCam = cv.VideoCapture(self.rightCamProps.port)
         self.leftCam = cv.VideoCapture(self.leftCamProps.port)
 
+        # Init PoseEstimator
         self.poseEstimator = PoseEstimator(self.rightCamProps, self.leftCamProps, lidarDevice)
 
         # Load the trained model
         self.model = YOLO(modelPath)
 
         # self.visualizer = VisualizerManager("/Users/nathanquartaro/DevLocal/GodotProjects/hybridstereoautonomousvehiclesystemvisualizer/builds/mac/HybridStereoAutonomousVehicleSystemVisualizer.app/Contents/MacOS/HybridStereoAutonomousVehicleSystemVisualizer")
-        # self.visualizer = VisualizerManager(None)
+        self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
+        """Converts a list of VisionObjects from the left and right cameras to a list of PoseObjects"""
+
         # Link left and right vision objects
         linkedObjects: dict[int, tuple[VisionObject, VisionObject]] = {}
 
+        # Loop through every object and determine it's corresponding partner in the right camera
         for i in range(len(lObjects)):
             lObject = lObjects[i]
             for rObject in rObjects:
                 if (rObject.objectType != lObject.objectType):
                     continue
-
-                # If the width/height of the two objects are not similar these two objects are probably not the same
-                # if (not Util.isSimilar(rObject.w, lObject.w, DIMENSION_TOLERANCE)):
-                #     print("w dimension out of tolerance")
-                #     continue
-                # if (not Util.isSimilar(rObject.h, lObject.h, DIMENSION_TOLERANCE)):
-                #     print("h dimension out of tolerance")
-                #     continue
-
-                rBoxArea = rObject.w * rObject.h
-                lBoxArea = lObject.w * lObject.h
-                boxAreaAvg = (rBoxArea + lBoxArea) / 2
-
-                # print(f"Dimension delta w: {abs(rObject.w - lObject.w)}")
-                # print(f"Dimension delta h: {abs(rObject.h - lObject.h)}")
-                # print(f"Position delta x: {abs(rObject.x - lObject.x)}")
-                # print(f"Position delta y: {abs(rObject.y - lObject.y)}")
-                # print(f"Box Area: {boxAreaAvg}")
-
-                # If the position of the two objects are not similar these two objects are probably not the same
-                # if (not Util.isSimilar(rObject.x, lObject.x, POSITION_TOLERANCE * boxAreaAvg)):
-                #     print("x pos out of tolerance")
-                #     continue
-                # if (not Util.isSimilar(rObject.y, lObject.y, POSITION_TOLERANCE * boxAreaAvg)):
-                #     print("y pos out of tolerance")
-                #     continue
 
                 # These two objects are probably the same
                 linkedObjects[i] = (lObject, rObject)
@@ -80,12 +60,15 @@ class VisionSystem:
 
         # print(f"LINKED: {linkedObjects}")
 
+        # Create a list of PoseObjects
         poseObjects: list[PoseObject] = []
         for i in linkedObjects:
             lObject = linkedObjects[i][0]
             rObject = linkedObjects[i][1]
+            # Estimate the position of this object
             x, y, z = self.poseEstimator.estimate(lObject, rObject)
 
+            # Append the correct sign depending on its type
             match rObject.objectType:
                 case ObjectType.StopSign:
                     poseObjects.append(StopSign(x, y, z))
@@ -97,6 +80,8 @@ class VisionSystem:
         return poseObjects
 
     async def start(self):
+        """Starts the vision system"""
+
         # Performance statistics
         frames = 0
         startTimeSecs = time.perf_counter()
@@ -104,28 +89,11 @@ class VisionSystem:
         while (True):
             frameStartTimeSecs = time.perf_counter()
 
+            # Read frames from cameras
             rRet, rFrame = self.rightCam.read()
             lRet, lFrame = self.leftCam.read()
 
-            # Get new camera matrix scaled for correct aspect ratio
-            # rNewMatrix, rRoi = cv.getOptimalNewCameraMatrix(
-            #     self.rightCamProps.calibrationMatrix,
-            #     self.rightCamProps.distortionCoefficients.reshape(-1, 1),
-            #     (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
-            #     1,
-            #     (self.rightCamProps.widthNative, self.rightCamProps.heightNative),
-            #     True
-            # )
-            #
-            # lNewMatrix, lRoi = cv.getOptimalNewCameraMatrix(
-            #     self.leftCamProps.calibrationMatrix,
-            #     self.leftCamProps.distortionCoefficients.reshape(-1, 1),
-            #     (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
-            #     1,
-            #     (self.leftCamProps.widthNative, self.leftCamProps.heightNative),
-            #     True
-            # )
-
+            # Undistort the camera frames
             rFrame = cv.undistort(
                 rFrame,
                 self.rightCamProps.calibrationMatrix,
@@ -142,14 +110,18 @@ class VisionSystem:
                 # lNewMatrix
             )
 
+            # Define minimum confidence
+            # TODO: Up this?
             MIN_CONFIDENCE = 0.35
 
+            # Run the model on the right and left cameras
             rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
             # processedRFrame = rResults[0].plot()
             # processedLFrame = lResults[0].plot()
+            # Resize windows to not take up so much space when displayed on screen
             processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
             processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
 
@@ -157,9 +129,11 @@ class VisionSystem:
             lObjects = VisionObject.fromResults(lResults[0])
             rObjects = VisionObject.fromResults(rResults[0])
 
+            # Estimate the position of these objects
             objects = self.toPoseObjects(lObjects, rObjects)
+
             # Update visualizer
-            # await self.visualizer.update(objects)
+            await self.visualizer.update(objects)
 
             for obj in objects:
                 print(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")

@@ -5,6 +5,8 @@ import numpy as np
 
 
 class CameraProperties:
+    """Represents all the constants of a single camera. Can be loaded from a json file."""
+
     def __init__(self, name: str, port, widthNative: int, heightNative: int, hfov: float, x: float, y: float, z: float,
                  calibrationMatrix: cv.Mat[3, 3], distortionCoefficients: cv.Mat[1, 5]):
         super().__init__()
@@ -21,10 +23,11 @@ class CameraProperties:
         self.distortionCoefficients = distortionCoefficients
 
     def getAspectRatio(self) -> float:
+        """Returns the aspect ratio of this camera"""
         return self.widthNative / self.heightNative
 
-    # For json serialization
     def asJson(self):
+        """Serializes this object to json"""
         d = {
             "name": self.name,
             "port": self.port,
@@ -52,6 +55,7 @@ class CameraProperties:
 
     @staticmethod
     def fromJson(d):
+        """Deserializes this object from a dict"""
         return CameraProperties(
             d["name"],
             d["port"],
