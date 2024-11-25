@@ -15,6 +15,7 @@ from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
 # TODO: Make logging stuff
+# TODO: Update README.md
 
 
 async def main():
