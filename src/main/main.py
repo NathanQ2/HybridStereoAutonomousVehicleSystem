@@ -11,16 +11,18 @@ import asyncio
 
 
 from util.Util import Util
+from util.Logger import Logger
 from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
-# TODO: Make logging stuff
 # TODO: Update README.md
+# TODO: Add text recognition for stop signs
 
 
 async def main():
+    logger = Logger("Main")
     if (len(sys.argv) != 3):
-        print(f"ERR: Invalid number of arguments, expected 3 but got {len(sys.argv)}.")
+        logger.error(f"ERR: Invalid number of arguments, expected 3 but got {len(sys.argv)}.")
 
         return 1
 

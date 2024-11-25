@@ -4,13 +4,16 @@ import asyncio
 
 from poseEstimator.PoseObject import PoseObject
 from Serializer import Serializer
+from src.main.util.Logger import Logger
 
 
 class VisualizerManager:
     """Manages the visualizer gui"""
 
     def __init__(self, visualizerPath: str | None):
-        print("-- INFO -- Starting Visualizer...")
+        self.logger = Logger("VisualizerManager")
+
+        self.logger.trace("Starting Visualizer")
         self.IP = "127.0.0.1"
         self.PORT = 5006
         self.p = None
@@ -26,8 +29,9 @@ class VisualizerManager:
             )
 
         self.sock.listen(1)
-        print("-- INFO -- Waiting for connection...")
+        self.logger.trace("Waiting for connection")
         self.conn, self.addr = self.sock.accept()
+        self.logger.trace(f"Connected at {self.addr}")
 
         pass
 
@@ -62,4 +66,3 @@ class VisualizerManager:
 
         # Send bytes to client
         self.conn.send(buff)
-        # print(f"Sent: {buff.hex()}")

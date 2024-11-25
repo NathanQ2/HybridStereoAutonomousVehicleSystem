@@ -17,6 +17,7 @@ from poseEstimator.SpeedLimitSign import SpeedLimitSign
 from poseEstimator.WarningSign import WarningSign
 from VisionObject import VisionObject, ObjectType
 from VisualizerManager import VisualizerManager
+from src.main.util.Logger import Logger
 from util.Util import Util
 
 
@@ -25,6 +26,8 @@ class VisionSystem:
 
     def __init__(self, leftCamProps: CameraProperties, rightCampProps: CameraProperties, lidarDevice: str,
                  modelPath: os.path):
+        self.logger = Logger("VisionSystem")
+
         self.leftCamProps = leftCamProps
         self.rightCamProps = rightCampProps
 
@@ -57,8 +60,6 @@ class VisionSystem:
                 # These two objects are probably the same
                 linkedObjects[i] = (lObject, rObject)
                 break
-
-        # print(f"LINKED: {linkedObjects}")
 
         # Create a list of PoseObjects
         poseObjects: list[PoseObject] = []
@@ -119,9 +120,6 @@ class VisionSystem:
             lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
             # Debug drawing
-            # processedRFrame = rResults[0].plot()
-            # processedLFrame = lResults[0].plot()
-            # Resize windows to not take up so much space when displayed on screen
             processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
             processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
 
@@ -136,7 +134,7 @@ class VisionSystem:
             await self.visualizer.update(objects)
 
             for obj in objects:
-                print(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
+                self.logger.trace(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
 
             cv.imshow("Processed Right Frame", processedRFrame)
             cv.imshow("Processed Left Frame", processedLFrame)
