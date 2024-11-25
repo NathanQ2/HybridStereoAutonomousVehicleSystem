@@ -16,6 +16,7 @@ from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
 # TODO: Update README.md
+# TODO: Add one config file support
 # TODO: Add text recognition for stop signs
 
 
