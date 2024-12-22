@@ -14,34 +14,28 @@ from util.Util import Util
 from util.Logger import Logger
 from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
+from Config import Config
 
 # TODO: Add one config file support
 # TODO: Update README.md
 # TODO: Add text recognition for speed signs
+# TODO: Fix relative imports
 # TODO: Dog
 
 
 async def main():
     logger = Logger("Main")
-    if (len(sys.argv) != 3):
-        logger.error(f"ERR: Invalid number of arguments, expected 3 but got {len(sys.argv)}.")
+    if (len(sys.argv) != 2):
+        logger.error(f"ERR: Invalid number of arguments, expected 1 but got {len(sys.argv)}.")
 
         return 1
 
-    # Load camera properties json files
-    rightCamPropsJson = None
-    leftCamPropsJson = None
-    with open(f"{os.getcwd()}/cameraCalib/rightCameraProperties.json", "r") as f:
-        rightCamPropsJson = f.read()
-
-    with open(f"{os.getcwd()}/cameraCalib/leftCameraProperties.json", "r") as f:
-        leftCamPropsJson = f.read()
-
-    rightCamProps = CameraProperties.fromJson(json.loads(rightCamPropsJson))
-    leftCamProps = CameraProperties.fromJson(json.loads(leftCamPropsJson))
+    # Load config file
+    with open(sys.argv[1]) as f:
+        config = Config.fromJson(json.loads(f.read()))
 
     # Initialize vision system
-    vision = VisionSystem(leftCamProps, rightCamProps, sys.argv[1], sys.argv[2])
+    vision = VisionSystem(config)
 
     # Start vision system
     await vision.start()

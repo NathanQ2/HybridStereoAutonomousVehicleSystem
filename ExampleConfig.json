@@ -1,0 +1,69 @@
+{
+  "leftCameraProperties": {
+    "name": "leftCam",
+    "port": 0,
+    "widthNative": 1920,
+    "heightNative": 1080,
+    "hfov": 90,
+    "x": -0.09,
+    "y": 0.045,
+    "z": 0.025,
+    "calibrationMatrix": [
+      [1459.5231354918496, 0, 832.4540220670708],
+      [0, 1466.4797018923778, 463.2404410219117],
+      [0, 0, 1]
+    ],
+    "distortionCoefficients": [
+      [
+        -0.3617007417720118
+      ],
+      [
+        0.15128631032274578
+      ],
+      [
+        -0.0006527259339420204
+      ],
+      [
+        -0.0010465227889859484
+      ],
+      [
+        -0.03659413391535098
+      ]
+    ]
+  },
+  "rightCameraProperties": {
+    "name": "rightCam",
+    "port": 1,
+    "widthNative": 1280,
+    "heightNative": 720,
+    "hfov": 48.80887495,
+    "x": 0.105,
+    "y": 0.045,
+    "z": 0.025,
+    "calibrationMatrix": [
+      [1424.4341260776985, 0, 678.370087298601],
+      [0, 1436.9492361498594, 327.82179320142245],
+      [0, 0, 1]
+    ],
+    "distortionCoefficients": [
+      [
+        0.1947389099586247
+      ],
+      [
+        -0.4378239199371739
+      ],
+      [
+        -0.006919984229621114
+      ],
+      [
+        0.005882513339448832
+      ],
+      [
+        -0.8125853302687356
+      ]
+    ]
+  },
+  "lidarDevice": "/dev/tty.SLAB_USBtoUART",
+  "modelPath": "runs/detect/train/weights/best.pt",
+  "visualizerPath": "~/Developer/GodotProjects/hybridstereoautonomousvehiclesystemvisualizer/builds/mac/HybridStereoAutonomousVehicleSystemVisualizer.app/Contents/Macos/HybridStereoAutonomousVehicleSystemVisualizer"
+}

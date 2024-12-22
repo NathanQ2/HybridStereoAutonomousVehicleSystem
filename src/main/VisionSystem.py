@@ -17,6 +17,7 @@ from poseEstimator.SpeedLimitSign import SpeedLimitSign
 from poseEstimator.WarningSign import WarningSign
 from VisionObject import VisionObject, ObjectType
 from VisualizerManager import VisualizerManager
+from src.main.Config import Config
 from src.main.util.Logger import Logger
 from util.Util import Util
 
@@ -24,24 +25,23 @@ from util.Util import Util
 class VisionSystem:
     """Represents the entire camera / lidar system"""
 
-    def __init__(self, leftCamProps: CameraProperties, rightCampProps: CameraProperties, lidarDevice: str,
-                 modelPath: os.path):
+    def __init__(self, config: Config):
         self.logger = Logger("VisionSystem")
 
-        self.leftCamProps = leftCamProps
-        self.rightCamProps = rightCampProps
+        self.leftCamProps = config.leftCameraProperties
+        self.rightCamProps = config.rightCameraProperties
 
         # Init cameras
         self.rightCam = cv.VideoCapture(self.rightCamProps.port)
         self.leftCam = cv.VideoCapture(self.leftCamProps.port)
 
         # Init PoseEstimator
-        self.poseEstimator = PoseEstimator(self.rightCamProps, self.leftCamProps, lidarDevice)
+        self.poseEstimator = PoseEstimator(self.rightCamProps, self.leftCamProps, config.lidarDevice)
 
         # Load the trained model
-        self.model = YOLO(modelPath)
+        self.model = YOLO(config.modelPath)
 
-        self.visualizer = VisualizerManager("/Users/nathanquartaro/DevLocal/GodotProjects/hybridstereoautonomousvehiclesystemvisualizer/builds/mac/HybridStereoAutonomousVehicleSystemVisualizer.app/Contents/MacOS/HybridStereoAutonomousVehicleSystemVisualizer")
+        self.visualizer = VisualizerManager(config.visualizerPath)
         # self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:

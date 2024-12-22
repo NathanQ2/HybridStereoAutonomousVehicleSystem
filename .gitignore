@@ -2,6 +2,8 @@ runs
 
 venv
 
+Config.json
+
 # Mac os
 .DS_Store
 **/.DS_Store
