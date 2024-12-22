@@ -15,9 +15,10 @@ from util.Logger import Logger
 from VisionSystem import VisionSystem
 from poseEstimator.CameraProperties import CameraProperties
 
-# TODO: Update README.md
 # TODO: Add one config file support
-# TODO: Add text recognition for stop signs
+# TODO: Update README.md
+# TODO: Add text recognition for speed signs
+# TODO: Dog
 
 
 async def main():
