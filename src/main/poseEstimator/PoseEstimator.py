@@ -4,11 +4,9 @@ from ultralytics.engine.results import Results
 import math
 import asyncio
 
-from poseEstimator.CameraProperties import CameraProperties
-from poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
-
-from util.Util import Util
-
+from src.main.poseEstimator.CameraProperties import CameraProperties
+from src.main.poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
+from src.main.util.Util import Util
 from src.main.VisionObject import VisionObject
 from src.main.util.Logger import Logger
 

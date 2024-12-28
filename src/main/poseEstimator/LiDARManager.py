@@ -10,8 +10,8 @@ import socket
 import asyncio
 import threading
 
-from util.Util import Util
-from util.Logger import Logger
+from src.main.util.Util import Util
+from src.main.util.Logger import Logger
 
 
 class Node:

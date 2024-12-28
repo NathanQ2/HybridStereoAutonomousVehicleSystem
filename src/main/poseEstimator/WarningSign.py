@@ -1,6 +1,6 @@
-from poseEstimator.PoseObject import PoseObject
-from VisionObject import VisionObject
-from ObjectType import ObjectType
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.VisionObject import VisionObject
+from src.main.ObjectType import ObjectType
 
 
 class WarningSign(PoseObject):

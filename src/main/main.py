@@ -10,11 +10,11 @@ import platform
 import asyncio
 
 
-from util.Util import Util
-from util.Logger import Logger
-from VisionSystem import VisionSystem
-from poseEstimator.CameraProperties import CameraProperties
-from Config import Config
+from src.main.util.Util import Util
+from src.main.util.Logger import Logger
+from src.main.VisionSystem import VisionSystem
+from src.main.poseEstimator.CameraProperties import CameraProperties
+from src.main.Config import Config
 
 # TODO: Add one config file support
 # TODO: Update README.md

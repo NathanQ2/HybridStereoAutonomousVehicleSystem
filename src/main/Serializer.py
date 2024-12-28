@@ -1,10 +1,10 @@
-from poseEstimator.PoseObject import PoseObject
-from poseEstimator.StopSign import StopSign
-from poseEstimator.SpeedLimitSign import SpeedLimitSign
-from poseEstimator.WarningSign import WarningSign
-from ObjectType import ObjectType
-
 import struct
+
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.poseEstimator.StopSign import StopSign
+from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
+from src.main.poseEstimator.WarningSign import WarningSign
+from src.main.ObjectType import ObjectType
 
 
 # TODO: I'm pretty sure we can define inside Serializer, we just have to use self.

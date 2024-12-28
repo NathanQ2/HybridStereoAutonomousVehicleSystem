@@ -1,5 +1,5 @@
-from poseEstimator.PoseObject import PoseObject
-from ObjectType import ObjectType
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.ObjectType import ObjectType
 
 
 # Speed limit sign

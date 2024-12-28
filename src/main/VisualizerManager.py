@@ -2,8 +2,8 @@ import socket
 import subprocess
 import asyncio
 
-from poseEstimator.PoseObject import PoseObject
-from Serializer import Serializer
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.Serializer import Serializer
 from src.main.util.Logger import Logger
 
 

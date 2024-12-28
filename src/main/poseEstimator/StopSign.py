@@ -1,6 +1,7 @@
 import struct
-from ObjectType import ObjectType
-from poseEstimator.PoseObject import PoseObject
+
+from src.main.ObjectType import ObjectType
+from src.main.poseEstimator.PoseObject import PoseObject
 
 
 class StopSign(PoseObject):

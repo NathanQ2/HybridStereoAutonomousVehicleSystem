@@ -9,17 +9,17 @@ import subprocess
 import platform
 import asyncio
 
-from poseEstimator.PoseEstimator import PoseEstimator
-from poseEstimator.CameraProperties import CameraProperties
-from poseEstimator.PoseObject import PoseObject
-from poseEstimator.StopSign import StopSign
-from poseEstimator.SpeedLimitSign import SpeedLimitSign
-from poseEstimator.WarningSign import WarningSign
-from VisionObject import VisionObject, ObjectType
-from VisualizerManager import VisualizerManager
+from src.main.poseEstimator.PoseEstimator import PoseEstimator
+from src.main.poseEstimator.CameraProperties import CameraProperties
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.poseEstimator.StopSign import StopSign
+from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
+from src.main.poseEstimator.WarningSign import WarningSign
+from src.main.VisionObject import VisionObject, ObjectType
+from src.main.VisualizerManager import VisualizerManager
 from src.main.Config import Config
 from src.main.util.Logger import Logger
-from util.Util import Util
+from src.main.util.Util import Util
 
 
 class VisionSystem:
