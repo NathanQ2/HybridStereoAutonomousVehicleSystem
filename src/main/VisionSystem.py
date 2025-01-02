@@ -41,7 +41,7 @@ class VisionSystem:
         # Load the trained model
         self.model = YOLO(config.modelPath)
 
-        self.visualizer = VisualizerManager(config.visualizerPath)
+        self.visualizer = VisualizerManager(config.visualizerPath if (config.visualizerPath != "None") else None)
         # self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:

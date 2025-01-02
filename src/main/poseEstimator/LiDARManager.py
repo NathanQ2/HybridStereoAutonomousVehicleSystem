@@ -75,9 +75,12 @@ class LiDARThread(threading.Thread):
         self.lock = threading.Lock()
         self.running = False
 
+    def isConnected(self) -> bool:
+        return self.conn is not None
+
     def run(self):
         self.running = True
-        while(self.running):
+        while (self.running):
             # Receive data from lidar over socket
             timestampBytes = self.conn.recv(8)
             timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
@@ -123,6 +126,7 @@ class LiDARThread(threading.Thread):
 
 class LiDARManager:
     """Manages an external lidar and its thread."""
+
     def __init__(self, lidarDevice: str):
         self.logger = Logger("LiDARManager")
         self.logger.info("Starting LiDAR Interface")
@@ -147,24 +151,12 @@ class LiDARManager:
         self.lidarThread = LiDARThread(self.IP, self.PORT)
 
         # Check that RP_Lidar_Interface has not exited with an error and print its output to console
-        output = self.p.stdout.read(1)
-        self.logger.trace("Begin RP_LiDAR_Interface STDOUT:")
-        while (output.find("Scanning") == -1):
-            if (self.p.poll() is None):  # Program still running
-                output += self.p.stdout.read(1)
-
-                self.logger.trace(output, end='\r')
-            else:
-                self.logger.error(f"RP_LiDAR_Interface has crashed with exit code {self.p.returncode} during startup!")
-                exit(1)
-
-        self.logger.trace(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
+        while (self.lidarThread.isConnected() == False):
+            pass
         self.start()
 
     def __del__(self):
         self.p.terminate()
-        self.conn.close()
-        self.sock.close()
 
     def getLatest(self) -> LiDARMeasurement | None:
         """Returns the latest measurement from the lidar device."""
