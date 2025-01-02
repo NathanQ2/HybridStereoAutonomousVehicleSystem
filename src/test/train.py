@@ -8,9 +8,9 @@ def main():
 
     print(f"CWD: {os.getcwd()}")
 
-    model = YOLO("yolov8n.yaml")
-    results = model.train(data=f"{os.getcwd()}/dataset/data.yaml", epochs=1000, device=[0], batch=-0.90)
-    model.export(format="tflite")
+    model = YOLO("yolov8s.yaml")
+    results = model.train(data=f"{os.getcwd()}/dataset/data.yaml", epochs=100, device='mps', batch=-0.90)
+    results.export(format="-")
 
     endTime = time.time()
     print(f"Training time: {(endTime - startTime) / 60}mins")
