@@ -78,10 +78,10 @@ class PoseEstimator:
         if (shouldUseLiDAR):
             # z = b*fx / disparity
             # disparity = b*fx / z
-            lidarZ = measurement.getDistAtAngle(avgHorizAngle)
-            self.logger.trace(f"Lidar Z: {Util.metersToInches(lidarZ)}")
+            dist = measurement.getDistAtAngle(avgHorizAngle)
+            self.logger.trace(f"Lidar Dist: {Util.metersToInches(dist)}")
             # Use lidar for depth measurement
-            z = lidarZ
+            z = dist * math.cos(math.radians(avgHorizAngle))
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
         else:
             # Fall back on stereo cameras
