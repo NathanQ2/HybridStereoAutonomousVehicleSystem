@@ -1,5 +1,8 @@
+import time
+
 from colorama import Fore, Back, Style
 from enum import Enum
+from typing import Any
 
 # TODO: add record field / publish to visualizer
 
@@ -27,6 +30,13 @@ class LogLevel(Enum):
         return logLevel != LogLevel.NONE
 
 
+class AppFrame:
+    def __init__(self, startTime: float):
+        self.values = {
+            "time": startTime
+        }
+
+
 class Logger:
     COLOR_INFO = Fore.GREEN
     COLOR_WARN = Fore.YELLOW
@@ -36,18 +46,33 @@ class Logger:
     def __init__(self, subsystem: str, logLevel: LogLevel = LogLevel.DEBUG):
         self.subsystem = subsystem
         self.logLevel = logLevel
+        self.frames: list[AppFrame] = []
 
     def assrt(self, condition: bool, message: str):
         assert condition, f"[{self.subsystem} - ASSERTION] {message}"
 
     def trace(self, message: str, end='\n'):
-        print(f"[{self.subsystem} - TRACE] {message}", end=end)
+        if (LogLevel.canTrace(self.logLevel)):
+            print(f"[{self.subsystem} - TRACE] {message}", end=end)
 
     def info(self, message: str, end='\n'):
-        print(f"{self.COLOR_INFO}[{self.subsystem} - INFO] {message}{self.COLOR_RESET}", end=end)
+        if (LogLevel.canInfo(self.logLevel)):
+            print(f"{self.COLOR_INFO}[{self.subsystem} - INFO] {message}{self.COLOR_RESET}", end=end)
 
     def warning(self, message: str, end='\n'):
-        print(f"{self.COLOR_WARN}[{self.subsystem} - WARNING] {message}{self.COLOR_RESET}", end=end)
+        if (LogLevel.canWarn(self.logLevel)):
+            print(f"{self.COLOR_WARN}[{self.subsystem} - WARNING] {message}{self.COLOR_RESET}", end=end)
 
     def error(self, message: str, end='\n'):
-        print(f"{self.COLOR_ERROR}[{self.subsystem} - ERROR] {message}{self.COLOR_RESET}", end=end)
+        if (LogLevel.canError(self.logLevel)):
+            print(f"{self.COLOR_ERROR}[{self.subsystem} - ERROR] {message}{self.COLOR_RESET}", end=end)
+
+    def record(self, key: str, value: Any):
+        self.frames[-1].values[f"{self.subsystem}/{key}"] = value
+
+        if (LogLevel.canTrace(self.logLevel)):
+            self.trace(f"{key}: {value}")
+
+    def getFrame(self) -> AppFrame:
+        self.frames.append(AppFrame(time.time()))
+        return self.frames[-2]
