@@ -38,16 +38,16 @@ class Logger:
         self.logLevel = logLevel
 
     def assrt(self, condition: bool, message: str):
-        assert condition, f"[{self.subsystem} - ASSERTION] {message}"
+        assert condition, f"[ASSERT] {self.subsystem}: {message}"
 
     def trace(self, message: str, end='\n'):
-        print(f"[{self.subsystem} - TRACE] {message}", end=end)
+        print(f"[TRACE] {self.subsystem}: {message}", end=end)
 
     def info(self, message: str, end='\n'):
-        print(f"{self.COLOR_INFO}[{self.subsystem} - INFO] {message}{self.COLOR_RESET}", end=end)
+        print(f"{self.COLOR_INFO}[INFO] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)
 
-    def warning(self, message: str, end='\n'):
-        print(f"{self.COLOR_WARN}[{self.subsystem} - WARNING] {message}{self.COLOR_RESET}", end=end)
+    def warn(self, message: str, end='\n'):
+        print(f"{self.COLOR_WARN}[WARN] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)
 
     def error(self, message: str, end='\n'):
-        print(f"{self.COLOR_ERROR}[{self.subsystem} - ERROR] {message}{self.COLOR_RESET}", end=end)
+        print(f"{self.COLOR_ERROR}[ERROR] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)

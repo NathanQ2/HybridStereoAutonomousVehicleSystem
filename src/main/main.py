@@ -16,7 +16,6 @@ from src.main.VisionSystem import VisionSystem
 from src.main.poseEstimator.CameraProperties import CameraProperties
 from src.main.Config import Config
 
-# TODO: Add one config file support
 # TODO: Update README.md
 # TODO: Add text recognition for speed signs
 # TODO: Fix relative imports

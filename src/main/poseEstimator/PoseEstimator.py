@@ -71,7 +71,7 @@ class PoseEstimator:
         # Get latest measurement from LiDAR
         measurement = self.liDARManager.getLatest()
         if (measurement is None):
-            self.logger.warning("Lidar latest measurement is 'None'")
+            self.logger.warn("Lidar latest measurement is 'None'")
             shouldUseLiDAR = False
 
         self.logger.trace(f"ShouldUseLiDAR: {shouldUseLiDAR}")

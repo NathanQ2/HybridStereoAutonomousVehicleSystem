@@ -149,6 +149,7 @@ class VisionSystem:
             # print(f"FPS: {frames / (frameEndTimeSecs - startTimeSecs)}")
 
     def __del__(self):
+        self.logger.trace("Stopping")
         # Clean up
         self.rightCam.release()
         self.leftCam.release()
