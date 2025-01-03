@@ -10,7 +10,8 @@ import socket
 import asyncio
 import threading
 
-from util.Util import Util
+from src.main.util.Util import Util
+from src.main.util.Logger import Logger
 
 
 class Node:
@@ -56,7 +57,9 @@ class LiDARThread(threading.Thread):
     """Thread that reads data from RP_LiDAR_Interface. Should only be instantiated by LiDARManager"""
 
     def __init__(self, ip: str, port: int):
-        super().__init__()
+        super().__init__(daemon=True)
+        self.logger = Logger("LidarThread")
+
         # Setup socket
         self.IP = ip
         self.PORT = port
@@ -64,17 +67,19 @@ class LiDARThread(threading.Thread):
         self.sock.bind((self.IP, self.PORT))
 
         self.sock.listen(1)
-        print("-- INFO -- Waiting for connection...")
-        # TODO: add cleanup for self.conn and self.sock
+        self.logger.info("Waiting for connection")
         self.conn, self.addr = self.sock.accept()
 
         self.latestMeasurement = None
         self.lock = threading.Lock()
         self.running = False
 
+    def isConnected(self) -> bool:
+        return self.conn is not None
+
     def run(self):
         self.running = True
-        while(self.running):
+        while (self.running):
             # Receive data from lidar over socket
             timestampBytes = self.conn.recv(8)
             timestampInt = int.from_bytes(timestampBytes, 'little', signed=False)
@@ -120,9 +125,11 @@ class LiDARThread(threading.Thread):
 
 class LiDARManager:
     """Manages an external lidar and its thread."""
+
     def __init__(self, lidarDevice: str):
-        print(f"-- INFO -- Starting LiDAR Interface...")
-        print(f"-- INFO -- LiDAR Device: {lidarDevice}")
+        self.logger = Logger("LiDARManager")
+        self.logger.info("Starting LiDAR Interface")
+        self.logger.trace(f"LiDAR Device: {lidarDevice}")
 
         # TODO: Make this work better ( -> config file?)
         # Path to lidar interface
@@ -132,6 +139,7 @@ class LiDARManager:
         self.PORT = 5005
 
         # Start process
+        self.p = None
         self.p = subprocess.Popen(
             [interfacePath, lidarDevice, self.IP, str(self.PORT)],
             stdout=subprocess.PIPE,
@@ -141,28 +149,21 @@ class LiDARManager:
         # Create lidar thread
         self.lidarThread = LiDARThread(self.IP, self.PORT)
 
-        # Check that RP_Lidar_Interface has not exited with an error and print its output to conosole
-        output = self.p.stdout.read(1)
-        print(f"-- INFO -- Begin RP_LiDAR_Interface STDOUT:")
-        while (output.find("Scanning") == -1):
-            if (self.p.poll() is None):  # Program still running
-                output += self.p.stdout.read(1)
-
-                print(output, end='\r')
-            else:
-                print(f"-- ERROR -- RP_LiDAR_Interface has crashed with exit code {self.p.returncode} during startup!")
-                exit(1)
-
-        print(f"-- INFO -- End RP_LiDAR_Interface STDOUT")
+        while (self.lidarThread.isConnected() == False):
+            pass
         self.start()
 
     def __del__(self):
+        self.logger.trace("Stopping")
+        self.lidarThread.stop()
         self.p.terminate()
-        self.conn.close()
-        self.sock.close()
 
     def getLatest(self) -> LiDARMeasurement | None:
         """Returns the latest measurement from the lidar device."""
+        self.logger.trace("GetLatest")
+        if (not self.lidarThread.isConnected() or not self.lidarThread.running):
+            return None
+
         with self.lidarThread.lock:
             return self.lidarThread.latestMeasurement
 

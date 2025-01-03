@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from ObjectType import ObjectType
+from src.main.ObjectType import ObjectType
 
 
 class VisionObject:

@@ -2,15 +2,18 @@ import socket
 import subprocess
 import asyncio
 
-from poseEstimator.PoseObject import PoseObject
-from Serializer import Serializer
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.Serializer import Serializer
+from src.main.util.Logger import Logger
 
 
 class VisualizerManager:
     """Manages the visualizer gui"""
 
     def __init__(self, visualizerPath: str | None):
-        print("-- INFO -- Starting Visualizer...")
+        self.logger = Logger("VisualizerManager")
+
+        self.logger.info("Starting Visualizer")
         self.IP = "127.0.0.1"
         self.PORT = 5006
         self.p = None
@@ -26,8 +29,9 @@ class VisualizerManager:
             )
 
         self.sock.listen(1)
-        print("-- INFO -- Waiting for connection...")
+        self.logger.info("Waiting for connection")
         self.conn, self.addr = self.sock.accept()
+        self.logger.info(f"Connected at {self.addr}")
 
         pass
 
@@ -43,23 +47,23 @@ class VisualizerManager:
         # TODO: update this
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes
-        # pose objects
+        # Pose objects
 
         # Create new byte array
         buff = bytearray()
 
         # Write length to byte array
         size = Serializer.getSizePoseObjects(poseObjects)
-        # print(f"SizeBytes: {size}")
         sizeBytes = int.to_bytes(size, 4, "little", signed=False)
         buff += sizeBytes
-
-        # if (len(poseObjects) != 0):
-        #     buff += Serializer.serialize(poseObjects[0])
 
         for obj in poseObjects:
             buff += Serializer.serialize(obj)
 
         # Send bytes to client
-        self.conn.send(buff)
-        # print(f"Sent: {buff.hex()}")
+        try:
+            self.conn.send(buff)
+        except BrokenPipeError:
+            self.logger.warn("The visualizer has disconnected, stopping.")
+
+            exit(0)

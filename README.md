@@ -8,7 +8,7 @@ Road sign pose estimation for autonomous vehicles.
 3. [Git](https://git-scm.com/)
 4. [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers?tab=downloads)
 5. [PyTorch](https://pytorch.org/) (Ultralytics will automatically install PyTorch but installing manually is recommended)
-6. [Ultralytics](https://docs.ultralytics.com/) (Ultralytics will automatically be installed by setup scripts)
+6. [Ultralytics](https://docs.ultralytics.com/) 
 
 ## 2 - Clone the Repository
 ```git clone --recursive https://github.com/NathanQ2/HybridStereoAutonomousVehicleSystem.git```
@@ -32,8 +32,7 @@ The [CP210x USB to UART Bridge VCP Drivers](https://www.silabs.com/developers/us
 
 ### 4.2 - Build Using Cmake
 ```
-cd HybridStereoAutonomousVehicleSystem
-cd vendor/RP_LiDAR_Interface_Cpp
+cd HybridStereoAutonomousVehicleSystem/vendor/RP_LiDAR_Interface_Cpp
 mkdir build
 cd build
 cmake ..
@@ -50,14 +49,7 @@ At the moment, training configuration parameters can be edited in the [train.py]
 ```python3 src/test/train.py```
 
 ## 7 - Run the [main.py](src/main/main.py) File!
-### 7.1 - Windows
-```python3 src/main/main.py [lidar com port Ex: com3]```
-
-### 7.2 - Linux
-```python3 src/main/main.py [lidar com port Ex: /dev/ttyUSB0]```
-
-### 7.3 - Mac
-```python3 src/main/main.py [lidar com port Ex: /dev/ttySLAB_USBtoUART]```
+```python3 src/main/main.py [Config file location Ex: Config.json]```
 
 # How It Works
 ## Hardware

@@ -4,22 +4,23 @@ from ultralytics.engine.results import Results
 import math
 import asyncio
 
-from poseEstimator.CameraProperties import CameraProperties
-from poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
-
-from util.Util import Util
-
+from src.main.poseEstimator.CameraProperties import CameraProperties
+from src.main.poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
+from src.main.util.Util import Util
 from src.main.VisionObject import VisionObject
+from src.main.util.Logger import Logger
 
 
 class PoseEstimator:
     def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
         """Estimates the position of given VisionObjects"""
 
+        self.logger = Logger("PoseEstimator")
+
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
-        print(f"Baseline: {self.baseline}")
+        self.logger.trace(f"Baseline: {self.baseline}")
 
         # Init LiDARManager
         self.liDARManager = LiDARManager(lidarDevice)
@@ -56,7 +57,7 @@ class PoseEstimator:
         lHorizAngle = math.degrees(math.atan(lNormalizedCoords[0]))
         # Should be close enough to actual angle from lidar -> object
         avgHorizAngle = (rHorizAngle + lHorizAngle) / 2
-        # print(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
+        self.logger.trace(f"rVertAngle: {rVertAngle}, rHorizAngle: {rHorizAngle}, lHorizAngle: {lHorizAngle}, avgHoriz: {(rHorizAngle + lHorizAngle) / 2}")
 
         # If the object is within bounds to use lidar
         if (-10 < rVertAngle < 10 and -9.5 < avgHorizAngle < 19.2):
@@ -70,15 +71,15 @@ class PoseEstimator:
         # Get latest measurement from LiDAR
         measurement = self.liDARManager.getLatest()
         if (measurement is None):
-            print("Lidar latest measurement is 'None'!")
+            self.logger.warn("Lidar latest measurement is 'None'")
             shouldUseLiDAR = False
 
-        print(f"ShouldUseLiDAR: {shouldUseLiDAR}")
+        self.logger.trace(f"ShouldUseLiDAR: {shouldUseLiDAR}")
         if (shouldUseLiDAR):
             # z = b*fx / disparity
             # disparity = b*fx / z
             lidarZ = measurement.getDistAtAngle(avgHorizAngle)
-            print(f"Lidar Z: {Util.metersToInches(lidarZ)}")
+            self.logger.trace(f"Lidar Z: {Util.metersToInches(lidarZ)}")
             # Use lidar for depth measurement
             z = lidarZ
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
