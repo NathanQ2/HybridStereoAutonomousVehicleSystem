@@ -17,6 +17,7 @@ from src.main.poseEstimator.CameraProperties import CameraProperties
 from src.main.Config import Config
 
 # TODO: Update README.md
+# TODO: Is async necessary?
 # TODO: Add text recognition for speed signs
 # TODO: Fix relative imports
 # TODO: Dog
