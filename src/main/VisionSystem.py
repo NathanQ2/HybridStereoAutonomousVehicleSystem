@@ -42,7 +42,6 @@ class VisionSystem:
         self.model = YOLO(config.modelPath)
 
         self.visualizer = VisualizerManager(config.visualizerPath if (config.visualizerPath != "None") else None)
-        # self.visualizer = VisualizerManager(None)
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         """Converts a list of VisionObjects from the left and right cameras to a list of PoseObjects"""
@@ -100,7 +99,6 @@ class VisionSystem:
                 self.rightCamProps.calibrationMatrix,
                 self.rightCamProps.distortionCoefficients,
                 None,
-                # rNewMatrix
             )
 
             lFrame = cv.undistort(
@@ -108,7 +106,6 @@ class VisionSystem:
                 self.leftCamProps.calibrationMatrix,
                 self.leftCamProps.distortionCoefficients,
                 None,
-                # lNewMatrix
             )
 
             # Define minimum confidence
