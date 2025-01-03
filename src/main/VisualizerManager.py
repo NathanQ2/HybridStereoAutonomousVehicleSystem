@@ -47,19 +47,15 @@ class VisualizerManager:
         # TODO: update this
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes
-        # pose objects
+        # Pose objects
 
         # Create new byte array
         buff = bytearray()
 
         # Write length to byte array
         size = Serializer.getSizePoseObjects(poseObjects)
-        # print(f"SizeBytes: {size}")
         sizeBytes = int.to_bytes(size, 4, "little", signed=False)
         buff += sizeBytes
-
-        # if (len(poseObjects) != 0):
-        #     buff += Serializer.serialize(poseObjects[0])
 
         for obj in poseObjects:
             buff += Serializer.serialize(obj)

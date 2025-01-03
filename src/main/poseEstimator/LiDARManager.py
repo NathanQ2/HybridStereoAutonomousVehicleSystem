@@ -68,7 +68,6 @@ class LiDARThread(threading.Thread):
 
         self.sock.listen(1)
         self.logger.info("Waiting for connection")
-        # TODO: add cleanup for self.conn and self.sock
         self.conn, self.addr = self.sock.accept()
 
         self.latestMeasurement = None

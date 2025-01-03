@@ -7,9 +7,7 @@ from src.main.poseEstimator.WarningSign import WarningSign
 from src.main.ObjectType import ObjectType
 
 
-# TODO: I'm pretty sure we can define inside Serializer, we just have to use self.
-# We can't define these inside Serializer because the serializer class needs these
-# and python won't define these before they are referenced in code :(
+# TODO: Figure out if this can be put in Serializer
 class SerializerConstants:
     OBJECT_TYPE_SIZE_BYTES = 4
     INT_SIZE_BYTES = 4
