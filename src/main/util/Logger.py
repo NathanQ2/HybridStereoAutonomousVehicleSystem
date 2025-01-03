@@ -1,5 +1,3 @@
-import time
-
 from colorama import Fore, Back, Style
 from enum import Enum
 from typing import Any
@@ -49,23 +47,23 @@ class Logger:
         self.frames: list[AppFrame] = []
 
     def assrt(self, condition: bool, message: str):
-        assert condition, f"[{self.subsystem} - ASSERTION] {message}"
+        assert condition, f"[ASSERT] {self.subsystem}: {message}"
 
     def trace(self, message: str, end='\n'):
         if (LogLevel.canTrace(self.logLevel)):
-            print(f"[{self.subsystem} - TRACE] {message}", end=end)
+            print(f"[TRACE] {self.subsystem}: {message}", end=end)
 
     def info(self, message: str, end='\n'):
         if (LogLevel.canInfo(self.logLevel)):
-            print(f"{self.COLOR_INFO}[{self.subsystem} - INFO] {message}{self.COLOR_RESET}", end=end)
+            print(f"{self.COLOR_INFO}[INFO] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)
 
-    def warning(self, message: str, end='\n'):
+    def warn(self, message: str, end='\n'):
         if (LogLevel.canWarn(self.logLevel)):
-            print(f"{self.COLOR_WARN}[{self.subsystem} - WARNING] {message}{self.COLOR_RESET}", end=end)
+            print(f"{self.COLOR_WARN}[WARN] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)
 
     def error(self, message: str, end='\n'):
         if (LogLevel.canError(self.logLevel)):
-            print(f"{self.COLOR_ERROR}[{self.subsystem} - ERROR] {message}{self.COLOR_RESET}", end=end)
+            print(f"{self.COLOR_ERROR}[ERROR] {self.subsystem}: {message}{self.COLOR_RESET}", end=end)
 
     def record(self, key: str, value: Any):
         self.frames[-1].values[f"{self.subsystem}/{key}"] = value

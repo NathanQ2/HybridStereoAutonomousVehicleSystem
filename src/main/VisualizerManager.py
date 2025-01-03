@@ -13,7 +13,7 @@ class VisualizerManager:
     def __init__(self, visualizerPath: str | None):
         self.logger = Logger("VisualizerManager")
 
-        self.logger.trace("Starting Visualizer")
+        self.logger.info("Starting Visualizer")
         self.IP = "127.0.0.1"
         self.PORT = 5006
         self.p = None
@@ -29,9 +29,9 @@ class VisualizerManager:
             )
 
         self.sock.listen(1)
-        self.logger.trace("Waiting for connection")
+        self.logger.info("Waiting for connection")
         self.conn, self.addr = self.sock.accept()
-        self.logger.trace(f"Connected at {self.addr}")
+        self.logger.info(f"Connected at {self.addr}")
 
         pass
 
@@ -65,4 +65,9 @@ class VisualizerManager:
             buff += Serializer.serialize(obj)
 
         # Send bytes to client
-        self.conn.send(buff)
+        try:
+            self.conn.send(buff)
+        except BrokenPipeError:
+            self.logger.warn("The visualizer has disconnected, stopping.")
+
+            exit(0)

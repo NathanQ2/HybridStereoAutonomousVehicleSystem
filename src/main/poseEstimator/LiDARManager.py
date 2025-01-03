@@ -57,7 +57,7 @@ class LiDARThread(threading.Thread):
     """Thread that reads data from RP_LiDAR_Interface. Should only be instantiated by LiDARManager"""
 
     def __init__(self, ip: str, port: int):
-        super().__init__()
+        super().__init__(daemon=True)
         self.logger = Logger("LidarThread")
 
         # Setup socket
@@ -67,7 +67,7 @@ class LiDARThread(threading.Thread):
         self.sock.bind((self.IP, self.PORT))
 
         self.sock.listen(1)
-        self.logger.info("Waiting for connection...")
+        self.logger.info("Waiting for connection")
         # TODO: add cleanup for self.conn and self.sock
         self.conn, self.addr = self.sock.accept()
 
@@ -150,16 +150,21 @@ class LiDARManager:
         # Create lidar thread
         self.lidarThread = LiDARThread(self.IP, self.PORT)
 
-        # Check that RP_Lidar_Interface has not exited with an error and print its output to console
         while (self.lidarThread.isConnected() == False):
             pass
         self.start()
 
     def __del__(self):
+        self.logger.trace("Stopping")
+        self.lidarThread.stop()
         self.p.terminate()
 
     def getLatest(self) -> LiDARMeasurement | None:
         """Returns the latest measurement from the lidar device."""
+        self.logger.trace("GetLatest")
+        if (not self.lidarThread.isConnected() or not self.lidarThread.running):
+            return None
+
         with self.lidarThread.lock:
             return self.lidarThread.latestMeasurement
 
