@@ -25,7 +25,7 @@ from src.main.Config import Config
 
 
 async def main():
-    logger = Logger("Main")
+    logger = Logger("root")
     if (len(sys.argv) != 2):
         logger.error(f"Invalid number of arguments, expected 1 but got {len(sys.argv) - 1}.")
 
@@ -36,10 +36,12 @@ async def main():
         config = Config.fromJson(json.loads(f.read()))
 
     # Initialize vision system
-    vision = VisionSystem(config)
+    vision = VisionSystem(config, logger.getChild("VisionSystem"))
 
     # Start vision system
-    await vision.start()
+    shouldQuit = False
+    while(not shouldQuit):
+        shouldQuit = await vision.update()
 
 
 if (__name__ == "__main__"):

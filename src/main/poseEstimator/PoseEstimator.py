@@ -12,10 +12,10 @@ from src.main.util.Logger import Logger
 
 
 class PoseEstimator:
-    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
+    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str, logger: Logger):
         """Estimates the position of given VisionObjects"""
 
-        self.logger = Logger("PoseEstimator")
+        self.logger = logger
 
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
@@ -23,7 +23,7 @@ class PoseEstimator:
         self.logger.trace(f"Baseline: {self.baseline}")
 
         # Init LiDARManager
-        self.liDARManager = LiDARManager(lidarDevice)
+        self.liDARManager = LiDARManager(lidarDevice, self.logger.getChild("LiDARManager"))
 
     def estimate(self, lObject: VisionObject, rObject: VisionObject):
         """Returns the estimated position of the VisionObject in 3d space"""

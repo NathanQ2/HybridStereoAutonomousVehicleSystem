@@ -10,8 +10,8 @@ from src.main.util.Logger import Logger
 class VisualizerManager:
     """Manages the visualizer gui"""
 
-    def __init__(self, visualizerPath: str | None):
-        self.logger = Logger("VisualizerManager")
+    def __init__(self, visualizerPath: str | None, logger: Logger):
+        self.logger = logger
 
         self.logger.info("Starting Visualizer")
         self.IP = "127.0.0.1"
@@ -41,6 +41,8 @@ class VisualizerManager:
 
     async def update(self, poseObjects: list[PoseObject]):
         """Publish new data to the visualizer"""
+        
+        frame = self.logger.getRootFrame()
 
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes

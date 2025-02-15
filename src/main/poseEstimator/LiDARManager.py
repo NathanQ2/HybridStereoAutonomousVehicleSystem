@@ -56,9 +56,9 @@ class LiDARMeasurement:
 class LiDARThread(threading.Thread):
     """Thread that reads data from RP_LiDAR_Interface. Should only be instantiated by LiDARManager"""
 
-    def __init__(self, ip: str, port: int):
+    def __init__(self, ip: str, port: int, logger: Logger):
         super().__init__(daemon=True)
-        self.logger = Logger("LidarThread")
+        self.logger = logger
 
         # Setup socket
         self.IP = ip
@@ -126,8 +126,8 @@ class LiDARThread(threading.Thread):
 class LiDARManager:
     """Manages an external lidar and its thread."""
 
-    def __init__(self, lidarDevice: str):
-        self.logger = Logger("LiDARManager")
+    def __init__(self, lidarDevice: str, logger: Logger):
+        self.logger = logger
         self.logger.info("Starting LiDAR Interface")
         self.logger.trace(f"LiDAR Device: {lidarDevice}")
 
@@ -147,7 +147,7 @@ class LiDARManager:
         )
 
         # Create lidar thread
-        self.lidarThread = LiDARThread(self.IP, self.PORT)
+        self.lidarThread = LiDARThread(self.IP, self.PORT, self.logger.getChild("LiDARThread"))
 
         while (self.lidarThread.isConnected() == False):
             pass
