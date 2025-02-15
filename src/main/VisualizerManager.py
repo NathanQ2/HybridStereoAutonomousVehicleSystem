@@ -33,8 +33,6 @@ class VisualizerManager:
         self.conn, self.addr = self.sock.accept()
         self.logger.info(f"Connected at {self.addr}")
 
-        pass
-
     def __del__(self):
         if (self.p is not None):
             self.p.terminate()
@@ -44,7 +42,6 @@ class VisualizerManager:
     async def update(self, poseObjects: list[PoseObject]):
         """Publish new data to the visualizer"""
 
-        # TODO: update this
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes
         # Pose objects
