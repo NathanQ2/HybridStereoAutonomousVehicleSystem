@@ -25,8 +25,8 @@ class PoseEstimator:
         # Init LiDARManager
         self.liDARManager = LiDARManager(lidarDevice)
 
-    def getPoseFromObject(self, lObject: VisionObject, rObject: VisionObject):
-        """Estimates the position of the given VisionObject in 3d space"""
+    def estimate(self, lObject: VisionObject, rObject: VisionObject):
+        """Returns the estimated position of the VisionObject in 3d space"""
 
         # Use LiDAR for more accurate depth measurements
         shouldUseLiDAR = False
@@ -78,10 +78,10 @@ class PoseEstimator:
         if (shouldUseLiDAR):
             # z = b*fx / disparity
             # disparity = b*fx / z
-            lidarZ = measurement.getDistAtAngle(avgHorizAngle)
-            self.logger.trace(f"Lidar Z: {Util.metersToInches(lidarZ)}")
+            dist = measurement.getDistAtAngle(avgHorizAngle)
+            self.logger.trace(f"Lidar Dist: {Util.metersToInches(dist)}")
             # Use lidar for depth measurement
-            z = lidarZ
+            z = dist * math.cos(math.radians(avgHorizAngle))
             disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
         else:
             # Fall back on stereo cameras
@@ -99,7 +99,3 @@ class PoseEstimator:
         z = z + self.lCameraProps.z
 
         return (x, y, z)
-
-    def estimate(self, lObject: VisionObject, rObject: VisionObject):
-        """Returns the estimated position of the VisionObject in 3d space"""
-        return self.getPoseFromObject(lObject, rObject)

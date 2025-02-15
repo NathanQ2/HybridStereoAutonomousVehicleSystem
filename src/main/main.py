@@ -18,6 +18,7 @@ from src.main.Config import Config
 
 # TODO: Update README.md
 # TODO: Is async necessary?
+# TODO: Train better model & check if input frame size is correct
 # TODO: Add text recognition for speed signs
 # TODO: Fix relative imports
 # TODO: Dog
@@ -26,9 +27,9 @@ from src.main.Config import Config
 async def main():
     logger = Logger("Main")
     if (len(sys.argv) != 2):
-        logger.error(f"ERR: Invalid number of arguments, expected 1 but got {len(sys.argv)}.")
+        logger.error(f"Invalid number of arguments, expected 1 but got {len(sys.argv) - 1}.")
 
-        return 1
+        exit(1)
 
     # Load config file
     with open(sys.argv[1]) as f:

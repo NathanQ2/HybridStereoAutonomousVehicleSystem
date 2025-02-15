@@ -160,7 +160,6 @@ class LiDARManager:
 
     def getLatest(self) -> LiDARMeasurement | None:
         """Returns the latest measurement from the lidar device."""
-        self.logger.trace("GetLatest")
         if (not self.lidarThread.isConnected() or not self.lidarThread.running):
             return None
 
