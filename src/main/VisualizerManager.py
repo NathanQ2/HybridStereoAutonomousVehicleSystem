@@ -64,5 +64,7 @@ class VisualizerManager:
             self.conn.send(buff)
         except BrokenPipeError:
             self.logger.warn("The visualizer has disconnected, stopping.")
+            self.conn.close()
+            self.sock.close()
 
             exit(0)
