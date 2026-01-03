@@ -1,20 +1,11 @@
-import time
-import numpy as np
-import cv2 as cv
-from ultralytics import YOLO
-import json
-import os
-import sys
-import subprocess
-import platform
 import asyncio
+import json
+import sys
 
-
-from src.main.util.Util import Util
-from src.main.util.Logger import Logger
-from src.main.VisionSystem import VisionSystem
-from src.main.poseEstimator.CameraProperties import CameraProperties
 from src.main.Config import Config
+from src.main.VisionSystem import VisionSystem
+from src.main.util.Logger import Logger
+
 
 # TODO: Update README.md
 # TODO: Is async necessary?

@@ -1,23 +1,16 @@
 import time
-import numpy as np
+
 import cv2 as cv
 from ultralytics import YOLO
-import json
-import os
-import sys
-import subprocess
-import platform
-import asyncio
 
-from src.main.poseEstimator.PoseEstimator import PoseEstimator
-from src.main.poseEstimator.CameraProperties import CameraProperties
-from src.main.poseEstimator.PoseObject import PoseObject
-from src.main.poseEstimator.StopSign import StopSign
-from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
-from src.main.poseEstimator.WarningSign import WarningSign
+from src.main.Config import Config
 from src.main.VisionObject import VisionObject, ObjectType
 from src.main.VisualizerManager import VisualizerManager
-from src.main.Config import Config
+from src.main.poseEstimator.PoseEstimator import PoseEstimator
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
+from src.main.poseEstimator.StopSign import StopSign
+from src.main.poseEstimator.WarningSign import WarningSign
 from src.main.util.Logger import Logger
 from src.main.util.Util import Util
 
@@ -46,8 +39,10 @@ class VisionSystem:
         # Load the trained model
         self.model = YOLO(config.modelPath)
 
-        self.visualizer = VisualizerManager(config.visualizerPath if (config.visualizerPath != "None") else None,
-                                            self.logger.getChild("VisualizerManager"))
+        self.visualizer = VisualizerManager(
+            config.visualizerPath if (config.visualizerPath != "None") else None,
+            self.logger.getChild("VisualizerManager")
+        )
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         """Converts a list of VisionObjects from the left and right cameras to a list of PoseObjects"""
@@ -130,8 +125,7 @@ class VisionSystem:
         await self.visualizer.update(objects)
 
         for obj in objects:
-            self.logger.trace(
-                f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
+            self.logger.trace(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
 
         cv.imshow("Processed Right Frame", processedRFrame)
         cv.imshow("Processed Left Frame", processedLFrame)

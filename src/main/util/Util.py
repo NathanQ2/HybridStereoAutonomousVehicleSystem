@@ -1,4 +1,7 @@
 class Util:
+    def __init__(self):
+        raise Exception("This is a utility class!")
+    
     @staticmethod
     def inchesToMeters(inches):
         return inches * 0.0254

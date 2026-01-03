@@ -4,7 +4,7 @@ import numpy as np
 
 
 class CameraProperties:
-    """Represents all the constants of a single camera. Can be loaded from a json file."""
+    """Represents all the constants of a single camera. Can be loaded from a JSON file."""
 
     def __init__(self, name: str, port, widthNative: int, heightNative: int, hfov: float, x: float, y: float, z: float,
                  calibrationMatrix: cv.Mat[3, 3], distortionCoefficients: cv.Mat[1, 5]):
@@ -26,7 +26,7 @@ class CameraProperties:
         return self.widthNative / self.heightNative
 
     def asJson(self):
-        """Serializes this object to json"""
+        """Serializes this object to JSON"""
         d = {
             "name": self.name,
             "port": self.port,

@@ -1,9 +1,8 @@
 import socket
 import subprocess
-import asyncio
 
-from src.main.poseEstimator.PoseObject import PoseObject
 from src.main.Serializer import Serializer
+from src.main.poseEstimator.PoseObject import PoseObject
 from src.main.util.Logger import Logger
 
 
@@ -41,8 +40,6 @@ class VisualizerManager:
 
     async def update(self, poseObjects: list[PoseObject]):
         """Publish new data to the visualizer"""
-        
-        frame = self.logger.getRootFrame()
 
         # Serialization spec:
         # 4 bytes - size of rest of message in bytes

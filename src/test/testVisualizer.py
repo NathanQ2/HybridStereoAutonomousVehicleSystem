@@ -1,10 +1,8 @@
-import socket
 import asyncio
 
 from src.main.VisualizerManager import VisualizerManager
-from src.main.poseEstimator.StopSign import StopSign
 from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
-from src.main.poseEstimator.WarningSign import WarningSign
+from src.main.poseEstimator.StopSign import StopSign
 from src.main.util.Logger import Logger
 
 

@@ -21,3 +21,4 @@ class ObjectType(IntEnum):
                 return ObjectType.Warning
             case "regulatory":
                 return ObjectType.Regulatory
+        return None

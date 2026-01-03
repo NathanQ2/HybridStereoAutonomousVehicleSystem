@@ -1,5 +1,3 @@
-import struct
-
 from src.main.ObjectType import ObjectType
 from src.main.poseEstimator.PoseObject import PoseObject
 

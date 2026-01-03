@@ -1,9 +1,8 @@
-from logging import LogRecord
-
-from colorama import Fore, Back, Style
+import time
 from enum import Enum
 from typing import Any, Self
-import time
+
+from colorama import Fore, Style
 
 
 # TODO: add record field / publish to visualizer

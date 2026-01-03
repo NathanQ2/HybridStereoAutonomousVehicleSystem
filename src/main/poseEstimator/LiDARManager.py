@@ -1,17 +1,11 @@
 import math
-from multiprocessing import shared_memory
-import mmap
-import struct
 import os
-import platform
-import subprocess
-import time
 import socket
-import asyncio
+import subprocess
 import threading
 
-from src.main.util.Util import Util
 from src.main.util.Logger import Logger
+from src.main.util.Util import Util
 
 
 class Node:
@@ -44,7 +38,7 @@ class LiDARMeasurement:
 
     @staticmethod
     def degToNative(degrees: float) -> int:
-        """Returns the natiev rotation units of the lidar"""
+        """Returns the native rotation units of the lidar"""
 
         # deg = node.angle_z_q14 * 90 / (1 << 14)
         # deg = node.angle_z_q14 * 90 / 2^14
@@ -86,7 +80,6 @@ class LiDARThread(threading.Thread):
             # print(f"TimestampBytes: {timestampBytes.hex()} TimestampInt: {timestampInt}")
 
             nodes = []
-            nodeSizeBytes = 2 + 4 + 1 + 1
             # For every node in measurement
             for i in range(291):
                 angleBytes = self.conn.recv(2)
@@ -95,21 +88,10 @@ class LiDARThread(threading.Thread):
                 flagBytes = self.conn.recv(1)
 
                 angleInt = int.from_bytes(angleBytes, 'little', signed=False)
-                # print(f"AngleBytes: {angleBytes.hex()}")
-                # print(f"AngleInt: {angleInt}\n")
-
                 distInt = int.from_bytes(distBytes, 'little', signed=False)
-                # print(f"DistBytes: {distBytes.hex()}")
-                # print(f"DistInt: {distInt}\n")
-
                 qualityInt = int.from_bytes(qualityBytes, 'little', signed=False)
-                # print(f"QualityBytes: {qualityBytes.hex()}")
-                # print(f"QualityInt: {qualityInt}\n")
-
                 flagInt = int.from_bytes(flagBytes, 'little', signed=False)
-                # print(f"FlagBytes: {flagBytes.hex()}")
-                # print(f"FlagInt: {flagInt}\n\n")
-
+                
                 nodes.append(Node(angleInt, distInt, qualityInt, flagInt))
 
             # Update latest measurement
@@ -149,8 +131,10 @@ class LiDARManager:
         # Create lidar thread
         self.lidarThread = LiDARThread(self.IP, self.PORT, self.logger.getChild("LiDARThread"))
 
+        # TODO: Make this timeout
         while (self.lidarThread.isConnected() == False):
             pass
+        
         self.start()
 
     def __del__(self):
