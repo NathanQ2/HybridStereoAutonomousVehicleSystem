@@ -1,17 +1,16 @@
 import socket
 import subprocess
-import asyncio
 
-from src.main.poseEstimator.PoseObject import PoseObject
 from src.main.Serializer import Serializer
+from src.main.poseEstimator.PoseObject import PoseObject
 from src.main.util.Logger import Logger
 
 
 class VisualizerManager:
     """Manages the visualizer gui"""
 
-    def __init__(self, visualizerPath: str | None):
-        self.logger = Logger("VisualizerManager")
+    def __init__(self, visualizerPath: str | None, logger: Logger):
+        self.logger = logger
 
         self.logger.info("Starting Visualizer")
         self.IP = "127.0.0.1"
@@ -62,5 +61,7 @@ class VisualizerManager:
             self.conn.send(buff)
         except BrokenPipeError:
             self.logger.warn("The visualizer has disconnected, stopping.")
+            self.conn.close()
+            self.sock.close()
 
             exit(0)

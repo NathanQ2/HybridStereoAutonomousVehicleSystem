@@ -1,20 +1,11 @@
-import time
-import numpy as np
-import cv2 as cv
-from ultralytics import YOLO
-import json
-import os
-import sys
-import subprocess
-import platform
 import asyncio
+import json
+import sys
 
-
-from src.main.util.Util import Util
-from src.main.util.Logger import Logger
-from src.main.VisionSystem import VisionSystem
-from src.main.poseEstimator.CameraProperties import CameraProperties
 from src.main.Config import Config
+from src.main.VisionSystem import VisionSystem
+from src.main.util.Logger import Logger
+
 
 # TODO: Update README.md
 # TODO: Is async necessary?
@@ -25,7 +16,7 @@ from src.main.Config import Config
 
 
 async def main():
-    logger = Logger("Main")
+    logger = Logger("root")
     if (len(sys.argv) != 2):
         logger.error(f"Invalid number of arguments, expected 1 but got {len(sys.argv) - 1}.")
 
@@ -36,10 +27,12 @@ async def main():
         config = Config.fromJson(json.loads(f.read()))
 
     # Initialize vision system
-    vision = VisionSystem(config)
+    vision = VisionSystem(config, logger.getChild("VisionSystem"))
 
     # Start vision system
-    await vision.start()
+    shouldQuit = False
+    while(not shouldQuit):
+        shouldQuit = await vision.update()
 
 
 if (__name__ == "__main__"):

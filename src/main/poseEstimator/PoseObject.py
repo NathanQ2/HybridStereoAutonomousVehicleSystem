@@ -1,4 +1,3 @@
-from src.main.VisionObject import VisionObject
 from src.main.ObjectType import ObjectType
 
 

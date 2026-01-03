@@ -9,7 +9,6 @@ def main():
 
     # Load the trained model
     model = YOLO("../../runs/detect/train/weights/best.pt")
-    # model = YOLO(r"C:\Users\natet\OneDrive\Dev\Python\GenericAutonomousVehicleSystem\runs\detect\train\weights\best_saved_model\best_float32.tflite")
     frames = 0
     startTimeSecs = time.perf_counter()
 

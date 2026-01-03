@@ -1,23 +1,16 @@
 import time
-import numpy as np
+
 import cv2 as cv
 from ultralytics import YOLO
-import json
-import os
-import sys
-import subprocess
-import platform
-import asyncio
 
-from src.main.poseEstimator.PoseEstimator import PoseEstimator
-from src.main.poseEstimator.CameraProperties import CameraProperties
-from src.main.poseEstimator.PoseObject import PoseObject
-from src.main.poseEstimator.StopSign import StopSign
-from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
-from src.main.poseEstimator.WarningSign import WarningSign
+from src.main.Config import Config
 from src.main.VisionObject import VisionObject, ObjectType
 from src.main.VisualizerManager import VisualizerManager
-from src.main.Config import Config
+from src.main.poseEstimator.PoseEstimator import PoseEstimator
+from src.main.poseEstimator.PoseObject import PoseObject
+from src.main.poseEstimator.SpeedLimitSign import SpeedLimitSign
+from src.main.poseEstimator.StopSign import StopSign
+from src.main.poseEstimator.WarningSign import WarningSign
 from src.main.util.Logger import Logger
 from src.main.util.Util import Util
 
@@ -25,8 +18,8 @@ from src.main.util.Util import Util
 class VisionSystem:
     """Represents the entire camera / lidar system"""
 
-    def __init__(self, config: Config):
-        self.logger = Logger("VisionSystem")
+    def __init__(self, config: Config, logger: Logger):
+        self.logger = logger
 
         self.leftCamProps = config.leftCameraProperties
         self.rightCamProps = config.rightCameraProperties
@@ -36,12 +29,20 @@ class VisionSystem:
         self.leftCam = cv.VideoCapture(self.leftCamProps.port)
 
         # Init PoseEstimator
-        self.poseEstimator = PoseEstimator(self.rightCamProps, self.leftCamProps, config.lidarDevice)
+        self.poseEstimator = PoseEstimator(
+            self.rightCamProps,
+            self.leftCamProps,
+            config.lidarDevice,
+            self.logger.getChild("PoseEstimator")
+        )
 
         # Load the trained model
         self.model = YOLO(config.modelPath)
 
-        self.visualizer = VisualizerManager(config.visualizerPath if (config.visualizerPath != "None") else None)
+        self.visualizer = VisualizerManager(
+            config.visualizerPath if (config.visualizerPath != "None") else None,
+            self.logger.getChild("VisualizerManager")
+        )
 
     def toPoseObjects(self, lObjects: list[VisionObject], rObjects: list[VisionObject]) -> list[PoseObject]:
         """Converts a list of VisionObjects from the left and right cameras to a list of PoseObjects"""
@@ -79,71 +80,63 @@ class VisionSystem:
 
         return poseObjects
 
-    async def start(self):
-        """Starts the vision system"""
+    async def update(self) -> bool:
+        frameStartTimeSecs = time.perf_counter()
 
-        # Performance statistics
-        frames = 0
-        startTimeSecs = time.perf_counter()
+        # Read frames from cameras
+        rRet, rFrame = self.rightCam.read()
+        lRet, lFrame = self.leftCam.read()
 
-        while (True):
-            frameStartTimeSecs = time.perf_counter()
+        # Undistorted camera frames
+        rFrame = cv.undistort(
+            rFrame,
+            self.rightCamProps.calibrationMatrix,
+            self.rightCamProps.distortionCoefficients,
+            None,
+        )
 
-            # Read frames from cameras
-            rRet, rFrame = self.rightCam.read()
-            lRet, lFrame = self.leftCam.read()
+        lFrame = cv.undistort(
+            lFrame,
+            self.leftCamProps.calibrationMatrix,
+            self.leftCamProps.distortionCoefficients,
+            None,
+        )
 
-            # Undistort the camera frames
-            rFrame = cv.undistort(
-                rFrame,
-                self.rightCamProps.calibrationMatrix,
-                self.rightCamProps.distortionCoefficients,
-                None,
-            )
+        # Define minimum confidence
+        # TODO: Up this?
+        MIN_CONFIDENCE = 0.35
 
-            lFrame = cv.undistort(
-                lFrame,
-                self.leftCamProps.calibrationMatrix,
-                self.leftCamProps.distortionCoefficients,
-                None,
-            )
+        # Run the model on the right and left cameras
+        rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
+        lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
 
-            # Define minimum confidence
-            # TODO: Up this?
-            MIN_CONFIDENCE = 0.35
+        # Debug drawing
+        processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
+        processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
 
-            # Run the model on the right and left cameras
-            rResults = self.model.predict(rFrame, conf=MIN_CONFIDENCE, verbose=False)
-            lResults = self.model.predict(lFrame, conf=MIN_CONFIDENCE, verbose=False)
+        # Generate vision objects from model results
+        lObjects = VisionObject.fromResults(lResults[0])
+        rObjects = VisionObject.fromResults(rResults[0])
 
-            # Debug drawing
-            processedLFrame = cv.resize(lResults[0].plot(), (640, 480))
-            processedRFrame = cv.resize(rResults[0].plot(), (640, 480))
+        # Estimate the position of these objects
+        objects = self.toPoseObjects(lObjects, rObjects)
 
-            # Generate vision objects from model results
-            lObjects = VisionObject.fromResults(lResults[0])
-            rObjects = VisionObject.fromResults(rResults[0])
+        # Update visualizer
+        await self.visualizer.update(objects)
 
-            # Estimate the position of these objects
-            objects = self.toPoseObjects(lObjects, rObjects)
+        for obj in objects:
+            self.logger.trace(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
 
-            # Update visualizer
-            await self.visualizer.update(objects)
+        cv.imshow("Processed Right Frame", processedRFrame)
+        cv.imshow("Processed Left Frame", processedLFrame)
 
-            for obj in objects:
-                self.logger.trace(f"POSE OBJECT ({obj.type}): ({Util.metersToInches(obj.x)}in, {Util.metersToInches(obj.y)}in, {Util.metersToInches(obj.z)}in)")
+        if (cv.waitKey(1) & 0xFF == ord('q')):
+            return True
 
-            cv.imshow("Processed Right Frame", processedRFrame)
-            cv.imshow("Processed Left Frame", processedLFrame)
+        frameEndTimeSecs = time.perf_counter()
+        self.logger.record("FrameTime", frameEndTimeSecs - frameStartTimeSecs)
 
-            if (cv.waitKey(1) & 0xFF == ord('q')):
-                break
-
-            frameEndTimeSecs = time.perf_counter()
-            frames += 1
-
-            # print(f"Frame time: {(frameEndTimeSecs - frameStartTimeSecs) * 1000}ms")
-            # print(f"FPS: {frames / (frameEndTimeSecs - startTimeSecs)}")
+        return False
 
     def __del__(self):
         self.logger.trace("Stopping")

@@ -1,29 +1,37 @@
-import cv2 as cv
-from ultralytics import YOLO
-from ultralytics.engine.results import Results
 import math
-import asyncio
 
-from src.main.poseEstimator.CameraProperties import CameraProperties
-from src.main.poseEstimator.LiDARManager import LiDARManager, LiDARMeasurement
-from src.main.util.Util import Util
 from src.main.VisionObject import VisionObject
+from src.main.poseEstimator.CameraProperties import CameraProperties
+from src.main.poseEstimator.LiDARManager import LiDARManager
 from src.main.util.Logger import Logger
+from src.main.util.Util import Util
 
 
 class PoseEstimator:
-    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str):
+    def __init__(self, rCameraProps: CameraProperties, lCameraProps: CameraProperties, lidarDevice: str, logger: Logger):
         """Estimates the position of given VisionObjects"""
 
-        self.logger = Logger("PoseEstimator")
+        self.logger = logger
 
         self.rCameraProps = rCameraProps
         self.lCameraProps = lCameraProps
         self.baseline = abs(self.rCameraProps.x - self.lCameraProps.x)
         self.logger.trace(f"Baseline: {self.baseline}")
+        
+        # Camera constants
+        self.lfx = self.lCameraProps.calibrationMatrix[0][0]
+        self.lfy = self.lCameraProps.calibrationMatrix[1][1]
+        self.lox = self.lCameraProps.calibrationMatrix[0][2]
+        self.loy = self.lCameraProps.calibrationMatrix[1][2]
+        
+        self.rfx = self.rCameraProps.calibrationMatrix[0][0]
+        self.rfy = self.rCameraProps.calibrationMatrix[1][1]
+        self.rox = self.rCameraProps.calibrationMatrix[0][2]
+        self.roy = self.rCameraProps.calibrationMatrix[1][2]
+
 
         # Init LiDARManager
-        self.liDARManager = LiDARManager(lidarDevice)
+        self.liDARManager = LiDARManager(lidarDevice, self.logger.getChild("LiDARManager"))
 
     def estimate(self, lObject: VisionObject, rObject: VisionObject):
         """Returns the estimated position of the VisionObject in 3d space"""
@@ -41,17 +49,18 @@ class PoseEstimator:
 
         # 0 -> 1 space
         rNormalizedCoords = (
-            (ur - self.rCameraProps.calibrationMatrix[0][2]) / self.rCameraProps.calibrationMatrix[0][0],
-            (vr - self.rCameraProps.calibrationMatrix[1][2]) / self.rCameraProps.calibrationMatrix[1][1]
+            (ur - self.rox) / self.rfx,
+            (vr - self.roy) / self.rfy
         )
 
         # 0 -> 1 space
         lNormalizedCoords = (
-            (ul - self.lCameraProps.calibrationMatrix[0][2]) / self.lCameraProps.calibrationMatrix[0][0],
-            (vl - self.lCameraProps.calibrationMatrix[1][2]) / self.lCameraProps.calibrationMatrix[1][1]
+            (ul - self.lox) / self.lfx,
+            (vl - self.loy) / self.lfy
         )
 
         # Determine the angle of this object in each camera (used for determining if lidar can be used)
+        # This is not a great way of doing this
         rVertAngle = math.degrees(math.atan(-rNormalizedCoords[1]))
         rHorizAngle = math.degrees(math.atan(rNormalizedCoords[0]))
         lHorizAngle = math.degrees(math.atan(lNormalizedCoords[0]))
@@ -82,18 +91,16 @@ class PoseEstimator:
             self.logger.trace(f"Lidar Dist: {Util.metersToInches(dist)}")
             # Use lidar for depth measurement
             z = dist * math.cos(math.radians(avgHorizAngle))
-            disparity = self.baseline * self.lCameraProps.calibrationMatrix[0][0] / z
+            disparity = self.baseline * self.lfx / z
         else:
             # Fall back on stereo cameras
-            z = (self.baseline * self.lCameraProps.calibrationMatrix[0][0]) / disparity
+            z = (self.baseline * self.lfx) / disparity
 
         # Calculate x, y coords
-        x = (self.baseline * (ul - self.lCameraProps.calibrationMatrix[0][2])) / disparity
-        y = -(self.baseline * self.lCameraProps.calibrationMatrix[0][0] * (
-                vl - self.lCameraProps.calibrationMatrix[1][2])) / (
-                    self.lCameraProps.calibrationMatrix[1][1] * disparity)
+        x = (self.baseline * (ul - self.lox)) / disparity
+        y = -(self.baseline * self.lfx * (vl - self.loy)) / (self.lfy * disparity)
 
-        # offset the coords to put them in world system space (instead of left camera space)
+        # Offset the coords to put them in world system space (instead of left camera space)
         x = x + self.lCameraProps.x
         y = y + self.lCameraProps.y
         z = z + self.lCameraProps.z
